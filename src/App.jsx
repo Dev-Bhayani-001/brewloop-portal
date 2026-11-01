@@ -20,6 +20,10 @@ import OffersPage from './pages/app/OffersPage'
 import LoginPage from './pages/auth/LoginPage'
 import SetPasswordPage from './pages/auth/SetPasswordPage'
 
+import UserLayout from './layouts/UserLayout'
+import UserLoyaltyPage from './pages/portal/UserLoyaltyPage'
+import UserBillsPage from './pages/portal/UserBillsPage'
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -29,12 +33,21 @@ export default function App() {
 
         <Route element={<RequireAuth />}>
           {/* Platform admin portal */}
-          <Route element={<RequireRole roles={['platform_admin']} />}>
-            <Route path="/admin" element={<AdminLayout />}>
+          <Route path="/admin" element={<RequireRole roles={['platform_admin']} />}>
+            <Route element={<AdminLayout />}>
               <Route index element={<AdminBusinessesPage />} />
               <Route path="businesses/:businessId" element={<AdminBusinessDetailPage />} />
               <Route path="members" element={<AdminMembersPage />} />
               <Route path="plans" element={<AdminPlansPage />} />
+            </Route>
+          </Route>
+
+          {/* Customer / User portal */}
+          <Route path="/portal" element={<RequireRole roles={['customer']} />}>
+            <Route element={<UserLayout />}>
+              <Route index element={<Navigate to="/portal/loyalty" replace />} />
+              <Route path="loyalty" element={<UserLoyaltyPage />} />
+              <Route path="bills" element={<UserBillsPage />} />
             </Route>
           </Route>
 

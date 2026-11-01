@@ -48,6 +48,103 @@ export const selectCardsByCustomer = createSelector([selectCards], (cards) =>
   Object.fromEntries(cards.map((card) => [card.customerId, card])),
 )
 
+export const selectCurrentCustomer = createSelector(
+  [selectCurrentUser, selectCustomers, selectSession],
+  (user, customers, session) => {
+    if (!user && !session) return null
+    const customerId = user?.customerId ?? session?.customerId
+    if (customerId) {
+      const match = customers.find((c) => c.id === customerId)
+      if (match) return match
+    }
+    const cleanPhone = (p) => p?.replace(/\D/g, '').slice(-10)
+    return (
+      customers.find(
+        (c) =>
+          (user?.email && c.email?.toLowerCase() === user.email.toLowerCase()) ||
+          (user?.phone && cleanPhone(c.phone) === cleanPhone(user.phone)),
+      ) ?? null
+    )
+  },
+)
+
+/** All customer memberships for the signed-in user across all coffee shops */
+export const selectCustomerMemberships = createSelector(
+  [selectCurrentUser, selectSession, (state) => state.customers.customers, (state) => state.admin.businesses],
+  (user, session, allCustomers, businesses) => {
+    if (!user && !session) return []
+    const cleanPhone = (p) => p?.replace(/\D/g, '').slice(-10)
+    const userPhone = cleanPhone(user?.phone)
+    const userEmail = user?.email?.toLowerCase()
+
+    return allCustomers
+      .filter(
+        (c) =>
+          c.id === user?.customerId ||
+          (userEmail && c.email?.toLowerCase() === userEmail) ||
+          (userPhone && cleanPhone(c.phone) === userPhone),
+      )
+      .map((customer) => ({
+        customer,
+        business: businesses.find((b) => b.id === customer.businessId) ?? null,
+      }))
+  },
+)
+
+/** All loyalty cards & per-café progress for the signed-in user across all coffee shops */
+export const selectCustomerCards = createSelector(
+  [
+    selectCustomerMemberships,
+    (state) => state.customers.cards,
+    (state) => state.offers.offers,
+    (state) => state.loyalty.progress,
+    (state) => state.loyalty.rewards,
+  ],
+  (memberships, allCards, allOffers, progress, allRewards) => {
+    return memberships.map(({ customer, business }) => {
+      const card = allCards.find((c) => c.customerId === customer.id)
+      const offers = allOffers.filter((o) => o.businessId === business?.id && isOfferLive(o))
+      const offerProgress = offers.map((offer) => {
+        const row = progress[progressKey(customer.id, offer.id)]
+        return {
+          offer,
+          count: row?.count ?? 0,
+          threshold: row?.thresholdSnapshot ?? offer.threshold,
+        }
+      })
+      const customerRewards = allRewards
+        .filter((r) => r.customerId === customer.id)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+
+      return {
+        customer,
+        business,
+        card,
+        offerProgress,
+        availableRewards: customerRewards.filter((r) => r.status === 'available'),
+        rewardHistory: customerRewards,
+      }
+    })
+  },
+)
+
+/** All bills for the signed-in user across all coffee shops with business metadata */
+export const selectAllCustomerBills = createSelector(
+  [selectCustomerMemberships, (state) => state.billing.bills, (state) => state.admin.businesses],
+  (memberships, allBills, businesses) => {
+    const customerIds = new Set(memberships.map((m) => m.customer.id))
+    const bizById = Object.fromEntries(businesses.map((b) => [b.id, b]))
+
+    return allBills
+      .filter((bill) => customerIds.has(bill.customerId))
+      .map((bill) => ({
+        ...bill,
+        business: bizById[bill.businessId] ?? null,
+      }))
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  },
+)
+
 /** Visit count, spend and last visit per customer, from active bills. */
 export const selectCustomerStats = createSelector([selectBills], (bills) => {
   const stats = {}

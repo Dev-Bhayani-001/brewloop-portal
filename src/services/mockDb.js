@@ -64,6 +64,20 @@ const users = [
     createdAt: daysAgo(200),
   },
   {
+    id: 'usr_customer',
+    businessId: 'biz_kettle',
+    customerId: 'kc_cus_1',
+    role: 'customer',
+    name: 'Dhruv Shah',
+    phone: '+91 98250 99999',
+    email: 'customer@brewloop.app',
+    demoPassword: 'user123',
+    mustResetPassword: false,
+    status: 'active',
+    failedLogins: 0,
+    createdAt: daysAgo(90),
+  },
+  {
     id: 'usr_meera',
     businessId: 'biz_kettle',
     role: 'manager',
@@ -184,14 +198,17 @@ function buildCustomers(business, count, random, startSequence = 1) {
     const lastName = LAST_NAMES[(index * 3 + 1) % LAST_NAMES.length]
     const id = `${business.cardPrefix.toLowerCase()}_cus_${index + 1}`
     const createdDaysAgo = random.int(2, 90)
+    const isDemoCustomer = index === 0
     customers.push({
       id,
       businessId: business.id,
-      name: `${firstName} ${lastName}`,
-      phone: `+91 9${String(8100 + index * 13 + business.name.length).slice(-4)}${String(
-        10000 + ((index * 7919) % 89999),
-      ).slice(-5)}`.replace(/^(\+91 \d{5})(\d{5})$/, '$1 $2'),
-      email: index % 3 === 0 ? `${firstName.toLowerCase()}.${lastName.toLowerCase()}@mail.com` : '',
+      name: isDemoCustomer ? 'Dhruv Shah' : `${firstName} ${lastName}`,
+      phone: isDemoCustomer
+        ? '+91 98250 99999'
+        : `+91 9${String(8100 + index * 13 + business.name.length).slice(-4)}${String(
+            10000 + ((index * 7919) % 89999),
+          ).slice(-5)}`.replace(/^(\+91 \d{5})(\d{5})$/, '$1 $2'),
+      email: isDemoCustomer ? 'customer@brewloop.app' : index % 3 === 0 ? `${firstName.toLowerCase()}.${lastName.toLowerCase()}@mail.com` : '',
       birthday: index % 4 === 0 ? `1995-${String((index % 12) + 1).padStart(2, '0')}-14` : '',
       createdAt: daysAgo(createdDaysAgo),
     })
@@ -411,6 +428,7 @@ export const DEMO_ACCOUNTS = [
   { label: 'Platform admin', identifier: 'admin@brewloop.app', password: 'admin123' },
   { label: 'Manager · Platinum café', identifier: 'meera@kettlecrumb.in', password: 'manager123' },
   { label: 'Staff · counter', identifier: 'arjun@kettlecrumb.in', password: 'staff123' },
+  { label: 'Customer · User panel', identifier: 'customer@brewloop.app', password: 'user123' },
   { label: 'Manager · Silver café', identifier: 'nisha@morninggrind.in', password: 'manager123' },
   { label: 'First login (temp password)', identifier: 'kavya@kettlecrumb.in', password: 'TEMP-4821' },
 ]

@@ -53,6 +53,7 @@ export const login = createAsyncThunk(
       userId: user.id,
       role: user.role,
       businessId: user.businessId,
+      customerId: user.customerId ?? null,
       mustResetPassword: user.mustResetPassword,
     }
   },
