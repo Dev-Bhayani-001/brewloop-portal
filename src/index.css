@@ -147,15 +147,21 @@
   }
 
   /*
-   * Dark mode hover states: subtle warm highlight instead of blinding white
+   * Dark mode hover states: subtle dark highlight instead of changing to white
    */
+  html.dark [class*='hover:bg-cream']:hover,
+  [data-theme='dark'] [class*='hover:bg-cream']:hover,
+  html.dark [class~='hover:bg-white']:hover,
+  [data-theme='dark'] [class~='hover:bg-white']:hover,
   html.dark .hover\:bg-cream-50:hover,
   [data-theme='dark'] .hover\:bg-cream-50:hover,
   html.dark .hover\:bg-cream-100:hover,
   [data-theme='dark'] .hover\:bg-cream-100:hover,
   html.dark .hover\:bg-white:hover,
-  [data-theme='dark'] .hover\:bg-white:hover {
-    background-color: rgba(255, 255, 255, 0.06);
+  [data-theme='dark'] .hover\:bg-white:hover,
+  html.dark [class*='active:bg-cream']:active,
+  [data-theme='dark'] [class*='active:bg-cream']:active {
+    background-color: rgba(255, 255, 255, 0.08) !important;
   }
 
   /* Dark mode card backgrounds for general bg-white containers */
