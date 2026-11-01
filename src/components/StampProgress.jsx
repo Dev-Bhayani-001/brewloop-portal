@@ -8,8 +8,8 @@ export default function StampProgress({ count, threshold, size = 'md' }) {
   if (threshold > 12) {
     return (
       <div aria-label={label} className="w-40">
-        <div className="h-1.5 overflow-hidden rounded-full bg-cream-200">
-          <div className="h-full rounded-full bg-espresso-900" style={{ width: `${(count / threshold) * 100}%` }} />
+        <div className="h-1.5 overflow-hidden rounded-full bg-cream-200 dark:bg-white/15">
+          <div className="h-full rounded-full bg-espresso-900 dark:bg-roast-400" style={{ width: `${(count / threshold) * 100}%` }} />
         </div>
       </div>
     )
@@ -21,10 +21,14 @@ export default function StampProgress({ count, threshold, size = 'md' }) {
       {Array.from({ length: threshold }, (_, index) => (
         <li
           key={index}
-          className={`${dot} rounded-full transition ${index < count ? 'bg-espresso-900' : 'bg-cream-200 ring-1 ring-inset ring-espresso-900/5'}`}
+          className={`${dot} rounded-full transition ${
+            index < count
+              ? 'bg-espresso-900 dark:bg-roast-400'
+              : 'bg-cream-200 ring-1 ring-inset ring-espresso-900/5 dark:bg-white/15 dark:ring-white/10'
+          }`}
         />
       ))}
-      <li className={`${dot} rounded-full bg-roast-400 ring-2 ring-roast-100 ring-offset-1`} title="Reward" />
+      <li className={`${dot} rounded-full bg-roast-400 ring-2 ring-roast-100 ring-offset-1 dark:ring-roast-900/60 dark:ring-offset-[#1a1816]`} title="Reward" />
     </ol>
   )
 }

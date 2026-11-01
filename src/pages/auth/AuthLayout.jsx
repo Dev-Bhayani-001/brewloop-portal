@@ -1,6 +1,7 @@
 import BrandMark from '../../components/BrandMark'
 import LoyaltyCard from '../../components/LoyaltyCard'
 import StampProgress from '../../components/StampProgress'
+import ThemeToggle from '../../components/ThemeToggle'
 
 /** Split-screen auth frame: an editorial brand panel on the left, the form on the right. */
 export default function AuthLayout({ children }) {
@@ -39,8 +40,13 @@ export default function AuthLayout({ children }) {
       </section>
 
       <section className="flex flex-col px-6 py-8 sm:px-12">
-        <div className="lg:hidden">
-          <BrandMark />
+        <div className="flex items-center justify-between">
+          <div className="lg:hidden">
+            <BrandMark />
+          </div>
+          <div className="ml-auto">
+            <ThemeToggle />
+          </div>
         </div>
         <div className="mx-auto my-auto w-full max-w-sm animate-fade-up py-10">{children}</div>
       </section>

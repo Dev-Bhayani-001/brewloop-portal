@@ -116,7 +116,7 @@ export default function UserLoyaltyPage() {
       {/* 3. Coffee Shop Card Switcher (if multiple cards) */}
       {cards.length > 1 && (
         <div className="flex flex-col gap-2">
-          <p className="text-xs font-semibold tracking-wider text-espresso-500 uppercase">
+          <p className="text-xs font-semibold tracking-wider text-espresso-500 uppercase dark:text-cream-300/70">
             Select Coffee Shop Card
           </p>
           <div className="flex flex-wrap gap-2">
@@ -129,13 +129,13 @@ export default function UserLoyaltyPage() {
                   onClick={() => setSelectedShopId(business?.id)}
                   className={`flex items-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-medium transition ${
                     isSelected
-                      ? 'bg-espresso-900 text-cream-50 shadow-soft'
-                      : 'border border-cream-300 bg-white text-espresso-700 hover:bg-cream-100 hover:text-espresso-900'
+                      ? 'bg-espresso-900 text-cream-50 shadow-soft dark:bg-[#2c2823] dark:text-cream-50 dark:ring-1 dark:ring-white/15'
+                      : 'border border-cream-300 bg-white text-espresso-700 hover:bg-cream-100 hover:text-espresso-900 dark:border-white/10 dark:bg-[#1a1714] dark:text-cream-200 dark:hover:bg-white/10 dark:hover:text-cream-50'
                   }`}
                 >
                   <Store className="size-4" />
                   <span>{business?.name}</span>
-                  <span className={`text-xs ${isSelected ? 'text-cream-300' : 'text-espresso-400'}`}>
+                  <span className={`text-xs ${isSelected ? 'text-cream-300' : 'text-espresso-400 dark:text-cream-300/70'}`}>
                     ({business?.city})
                   </span>
                   {availableRewards.length > 0 && (
@@ -166,8 +166,8 @@ export default function UserLoyaltyPage() {
             memberSince={formatDate(activeCardEntry?.customer?.createdAt)}
           />
 
-          <p className="rounded-xl bg-white p-3 text-xs text-espresso-600 shadow-card">
-            💡 <strong className="font-medium text-espresso-900">Barista Scan:</strong> Show this card or QR code to the cashier at{' '}
+          <p className="rounded-xl border border-cream-200 bg-white p-3 text-xs text-espresso-600 shadow-card dark:border-white/10 dark:bg-[#1a1714] dark:text-cream-200">
+            💡 <strong className="font-medium text-espresso-900 dark:text-cream-50">Barista Scan:</strong> Show this card or QR code to the cashier at{' '}
             <strong>{activeCardEntry?.business?.name}</strong> when ordering to collect stamps.
           </p>
         </div>
@@ -178,21 +178,21 @@ export default function UserLoyaltyPage() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="display-title text-[22px]">Coffee Reward Progress</h2>
-                <p className="mt-1 text-sm text-espresso-600">
+                <p className="mt-1 text-sm text-espresso-600 dark:text-cream-200/80">
                   Track how many coffee items you have added at {activeCardEntry?.business?.name}.
                 </p>
               </div>
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-roast-50 text-roast-600">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-roast-50 text-roast-600 dark:bg-roast-950/50 dark:text-roast-300">
                 <Coffee className="size-5" />
               </span>
             </div>
 
             {/* Live Progress Bar / Stamp Dots */}
             {coffeeProgress && (
-              <div className="mt-5 rounded-2xl bg-cream-50 p-4 ring-1 ring-cream-200">
+              <div className="mt-5 rounded-2xl bg-cream-50 p-4 ring-1 ring-cream-200 dark:bg-[#141210] dark:ring-white/10">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-sm font-semibold text-espresso-900">{coffeeProgress.offer.name}</p>
-                  <span className="text-xs font-medium text-espresso-500">
+                  <p className="text-sm font-semibold text-espresso-900 dark:text-cream-50">{coffeeProgress.offer.name}</p>
+                  <span className="text-xs font-medium text-espresso-500 dark:text-cream-300/70">
                     {coffeeProgress.count} of {coffeeProgress.threshold} stamps
                   </span>
                 </div>
@@ -201,14 +201,14 @@ export default function UserLoyaltyPage() {
                   <StampProgress count={coffeeProgress.count} threshold={coffeeProgress.threshold} size="md" />
                 </div>
 
-                <div className="mt-3 rounded-lg bg-white p-2.5 text-xs text-espresso-700">
+                <div className="mt-3 rounded-lg border border-cream-200 bg-white p-2.5 text-xs text-espresso-700 dark:border-white/10 dark:bg-[#1a1714] dark:text-cream-200">
                   {coffeeRemaining > 0 ? (
                     <span>
-                      ☕ You have added <strong className="font-semibold text-espresso-900">{coffeeProgress.count}</strong> coffee items. Add{' '}
-                      <strong className="font-semibold text-roast-600">{coffeeRemaining} more</strong> to unlock your free coffee reward!
+                      ☕ You have added <strong className="font-semibold text-espresso-900 dark:text-cream-50">{coffeeProgress.count}</strong> coffee items. Add{' '}
+                      <strong className="font-semibold text-roast-600 dark:text-roast-400">{coffeeRemaining} more</strong> to unlock your free coffee reward!
                     </span>
                   ) : (
-                    <span className="font-semibold text-leaf-700">
+                    <span className="font-semibold text-leaf-700 dark:text-leaf-600">
                       🎉 Stamp goal reached! Your free coffee reward is unlocked.
                     </span>
                   )}
@@ -222,11 +222,11 @@ export default function UserLoyaltyPage() {
                 {activeCardEntry.offerProgress
                   .filter((p) => p !== coffeeProgress)
                   .map((p) => (
-                    <div key={p.offer.id} className="flex items-center justify-between rounded-xl border border-cream-200 bg-cream-50/50 p-3 text-xs">
-                      <span className="font-medium text-espresso-800">{p.offer.name}</span>
+                    <div key={p.offer.id} className="flex items-center justify-between rounded-xl border border-cream-200 bg-cream-50/50 p-3 text-xs dark:border-white/10 dark:bg-[#141210]">
+                      <span className="font-medium text-espresso-800 dark:text-cream-100">{p.offer.name}</span>
                       <div className="flex items-center gap-3">
                         <StampProgress count={p.count} threshold={p.threshold} size="sm" />
-                        <span className="text-espresso-500">{p.count}/{p.threshold}</span>
+                        <span className="text-espresso-500 dark:text-cream-300/70">{p.count}/{p.threshold}</span>
                       </div>
                     </div>
                   ))}
@@ -235,14 +235,14 @@ export default function UserLoyaltyPage() {
 
             {/* Unlocked / Available Rewards */}
             {activeCardEntry?.availableRewards.length > 0 && (
-              <div className="mt-4 rounded-2xl border border-leaf-600/20 bg-leaf-50 p-3.5">
-                <p className="flex items-center gap-2 text-xs font-semibold text-leaf-700 uppercase tracking-wider">
+              <div className="mt-4 rounded-2xl border border-leaf-600/20 bg-leaf-50 p-3.5 dark:border-leaf-700/30 dark:bg-[#142318]">
+                <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-leaf-700 dark:text-emerald-300">
                   <Gift className="size-4" /> Ready to Redeem ({activeCardEntry.availableRewards.length})
                 </p>
                 <div className="mt-2 space-y-1">
                   {activeCardEntry.availableRewards.map((reward) => (
-                    <div key={reward.id} className="flex items-center justify-between rounded-lg bg-white/80 px-3 py-2 text-xs">
-                      <span className="font-medium text-espresso-900">{reward.name ?? 'Free Reward Voucher'}</span>
+                    <div key={reward.id} className="flex items-center justify-between rounded-lg bg-white/80 px-3 py-2 text-xs dark:bg-[#1a1714]/80">
+                      <span className="font-medium text-espresso-900 dark:text-cream-50">{reward.name ?? 'Free Reward Voucher'}</span>
                       <Badge tone="success">Ready at checkout</Badge>
                     </div>
                   ))}
@@ -252,18 +252,18 @@ export default function UserLoyaltyPage() {
 
             {/* Qualifying Coffee Menu Items List */}
             {qualifyingCoffeeItems.length > 0 && (
-              <div className="mt-5 border-t border-cream-200 pt-4">
-                <p className="text-xs font-semibold uppercase tracking-wider text-espresso-500">
+              <div className="mt-5 border-t border-cream-200 pt-4 dark:border-white/10">
+                <p className="text-xs font-semibold uppercase tracking-wider text-espresso-500 dark:text-cream-300/70">
                   Coffee Items You Can Add Towards Stamps
                 </p>
                 <div className="mt-2.5 flex flex-wrap gap-2">
                   {qualifyingCoffeeItems.slice(0, 8).map((item) => (
                     <span
                       key={item.id}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-cream-200 bg-white px-2.5 py-1 text-xs text-espresso-800"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-cream-200 bg-white px-2.5 py-1 text-xs text-espresso-800 dark:border-white/10 dark:bg-[#141210] dark:text-cream-200"
                     >
                       <span>{item.name}</span>
-                      <span className="tabular font-medium text-espresso-500">{formatCurrency(item.price)}</span>
+                      <span className="tabular font-medium text-espresso-500 dark:text-cream-300/70">{formatCurrency(item.price)}</span>
                     </span>
                   ))}
                 </div>
@@ -281,21 +281,21 @@ export default function UserLoyaltyPage() {
             <div
               key={business?.id ?? card?.id}
               onClick={() => setSelectedShopId(business?.id)}
-              className="group cursor-pointer rounded-2xl border border-cream-200 bg-white p-4 shadow-card transition hover:border-espresso-900/30 hover:shadow-soft"
+              className="group cursor-pointer rounded-2xl border border-cream-200 bg-white p-4 shadow-card transition hover:border-espresso-900/30 hover:shadow-soft dark:border-white/10 dark:bg-[#1a1714] dark:hover:border-roast-400/40"
             >
               <div className="flex items-center justify-between">
-                <p className="font-medium text-espresso-900">{business?.name}</p>
+                <p className="font-medium text-espresso-900 dark:text-cream-50">{business?.name}</p>
                 <Badge tone="neutral" icon={MapPin}>{business?.city}</Badge>
               </div>
-              <p className="tabular mt-3 font-mono text-sm tracking-wider text-espresso-600">
+              <p className="tabular mt-3 font-mono text-sm tracking-wider text-espresso-600 dark:text-cream-200">
                 {card?.cardNumber}
               </p>
-              <div className="mt-3 flex items-center justify-between border-t border-cream-100 pt-2 text-xs text-espresso-500">
+              <div className="mt-3 flex items-center justify-between border-t border-cream-100 pt-2 text-xs text-espresso-500 dark:border-white/10 dark:text-cream-300/70">
                 <span>Member: {customer.name}</span>
                 {availableRewards.length > 0 ? (
                   <Badge tone="accent">{availableRewards.length} reward</Badge>
                 ) : (
-                  <span className="text-espresso-400">Card Active</span>
+                  <span className="text-espresso-400 dark:text-cream-300/60">Card Active</span>
                 )}
               </div>
             </div>

@@ -2,11 +2,11 @@ import { Link } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 
 const VARIANTS = {
-  primary: 'bg-espresso-900 text-cream-50 shadow-[inset_0_1px_0_rgb(255_255_255/0.12)] hover:bg-espresso-800',
+  primary: 'bg-espresso-900 text-cream-50 shadow-[inset_0_1px_0_rgb(255_255_255/0.12)] hover:bg-espresso-800 dark:bg-roast-500 dark:text-white dark:hover:bg-roast-600',
   accent: 'bg-roast-500 text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.18)] hover:bg-roast-600',
-  secondary: 'bg-white text-espresso-900 shadow-card hover:bg-cream-50 hover:shadow-soft',
-  ghost: 'text-espresso-700 hover:bg-espresso-900/5 hover:text-espresso-900',
-  danger: 'bg-white text-red-700 shadow-card hover:bg-red-50',
+  secondary: 'bg-white text-espresso-900 shadow-card hover:bg-cream-50 hover:shadow-soft dark:bg-white/10 dark:text-cream-50 dark:hover:bg-white/15 dark:shadow-none',
+  ghost: 'text-espresso-700 hover:bg-espresso-900/5 hover:text-espresso-900 dark:text-cream-300 dark:hover:bg-white/10 dark:hover:text-cream-50',
+  danger: 'bg-white text-red-700 shadow-card hover:bg-red-50 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-900/50 dark:shadow-none',
 }
 
 const SIZES = {

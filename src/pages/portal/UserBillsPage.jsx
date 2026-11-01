@@ -110,7 +110,7 @@ export default function UserBillsPage() {
       <div className="space-y-3">
         {/* Coffee Shop Filter Bar */}
         <div>
-          <p className="mb-2 text-xs font-semibold tracking-wider text-espresso-500 uppercase">
+          <p className="mb-2 text-xs font-semibold tracking-wider text-espresso-500 uppercase dark:text-cream-300/70">
             Filter by Coffee Shop
           </p>
           <div className="flex flex-wrap gap-2">
@@ -119,8 +119,8 @@ export default function UserBillsPage() {
               onClick={() => setSelectedShopId('all')}
               className={`rounded-xl px-3.5 py-1.5 text-xs font-medium transition ${
                 selectedShopId === 'all'
-                  ? 'bg-espresso-900 text-cream-50 shadow-sm'
-                  : 'border border-cream-300 bg-white text-espresso-700 hover:bg-cream-100'
+                  ? 'bg-espresso-900 text-cream-50 shadow-sm dark:bg-[#2c2823] dark:text-cream-50 dark:ring-1 dark:ring-white/15'
+                  : 'border border-cream-300 bg-white text-espresso-700 hover:bg-cream-100 dark:border-white/10 dark:bg-[#1a1714] dark:text-cream-200 dark:hover:bg-white/10 dark:hover:text-cream-50'
               }`}
             >
               All Coffee Shops ({allBills.length})
@@ -135,13 +135,13 @@ export default function UserBillsPage() {
                   onClick={() => setSelectedShopId(shop.id)}
                   className={`flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-medium transition ${
                     isSelected
-                      ? 'bg-espresso-900 text-cream-50 shadow-sm'
-                      : 'border border-cream-300 bg-white text-espresso-700 hover:bg-cream-100'
+                      ? 'bg-espresso-900 text-cream-50 shadow-sm dark:bg-[#2c2823] dark:text-cream-50 dark:ring-1 dark:ring-white/15'
+                      : 'border border-cream-300 bg-white text-espresso-700 hover:bg-cream-100 dark:border-white/10 dark:bg-[#1a1714] dark:text-cream-200 dark:hover:bg-white/10 dark:hover:text-cream-50'
                   }`}
                 >
                   <Store className="size-3" />
                   <span>{shop.name}</span>
-                  <span className={`tabular ${isSelected ? 'text-cream-300' : 'text-espresso-400'}`}>
+                  <span className={`tabular ${isSelected ? 'text-cream-300' : 'text-espresso-400 dark:text-cream-300/70'}`}>
                     ({shopCount})
                   </span>
                 </button>
@@ -184,7 +184,7 @@ export default function UserBillsPage() {
         {filteredBills.length ? (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[700px] text-left text-sm">
-              <thead className="border-b border-cream-200 text-[11px] font-medium tracking-[0.12em] text-espresso-500 uppercase">
+              <thead className="border-b border-cream-200 text-[11px] font-medium tracking-[0.12em] text-espresso-500 uppercase dark:border-white/10 dark:text-cream-300/70">
                 <tr>
                   <th className="w-8 px-3 py-3" />
                   <th className="px-3 py-3 font-medium">Date & Time</th>
@@ -194,7 +194,7 @@ export default function UserBillsPage() {
                   <th className="px-4 py-3 text-right font-medium">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-cream-200">
+              <tbody className="divide-y divide-cream-200 dark:divide-white/10">
                 {filteredBills.map((bill) => {
                   const expanded = expandedBillId === bill.id
                   const isVoid = bill.status === 'void'
@@ -202,26 +202,26 @@ export default function UserBillsPage() {
 
                   return (
                     <Fragment key={bill.id}>
-                      <tr className={isVoid ? 'bg-cream-50/60 text-espresso-400' : 'hover:bg-cream-50/40'}>
+                      <tr className={isVoid ? 'bg-cream-50/60 text-espresso-400 dark:bg-white/5 dark:text-espresso-500' : 'hover:bg-cream-50/40 dark:hover:bg-white/5'}>
                         <td className="px-3 py-3">
                           <button
                             type="button"
                             onClick={() => setExpandedBillId(expanded ? null : bill.id)}
-                            className="rounded p-1 text-espresso-400 hover:bg-cream-100 hover:text-espresso-700"
+                            className="rounded p-1 text-espresso-400 hover:bg-cream-100 hover:text-espresso-700 dark:text-cream-300/60 dark:hover:bg-white/10 dark:hover:text-cream-50"
                             aria-label={expanded ? 'Hide items' : 'Show items'}
                             aria-expanded={expanded}
                           >
                             <ChevronDown className={`size-4 transition ${expanded ? 'rotate-180' : ''}`} />
                           </button>
                         </td>
-                        <td className="px-3 py-3 whitespace-nowrap">{formatDateTime(bill.createdAt)}</td>
+                        <td className="px-3 py-3 whitespace-nowrap text-espresso-700 dark:text-cream-200">{formatDateTime(bill.createdAt)}</td>
                         <td className="px-3 py-3 whitespace-nowrap">
-                          <span className="font-medium text-espresso-900">{bill.business?.name ?? 'Café'}</span>
-                          <span className="ml-1 text-xs text-espresso-500">· {bill.business?.city}</span>
+                          <span className="font-medium text-espresso-900 dark:text-cream-50">{bill.business?.name ?? 'Café'}</span>
+                          <span className="ml-1 text-xs text-espresso-500 dark:text-cream-300/70">· {bill.business?.city}</span>
                         </td>
-                        <td className="max-w-[280px] truncate px-3 py-3 text-espresso-700">
-                          <span className="font-medium text-espresso-900">{itemCount} items</span>
-                          <span className="ml-1 text-xs text-espresso-500">
+                        <td className="max-w-[280px] truncate px-3 py-3 text-espresso-700 dark:text-cream-200">
+                          <span className="font-medium text-espresso-900 dark:text-cream-50">{itemCount} items</span>
+                          <span className="ml-1 text-xs text-espresso-500 dark:text-cream-300/70">
                             ({bill.lines.map((l) => l.name).join(', ')})
                           </span>
                           {bill.discount > 0 && (
@@ -230,7 +230,7 @@ export default function UserBillsPage() {
                             </Badge>
                           )}
                         </td>
-                        <td className={`tabular px-3 py-3 text-right font-semibold ${isVoid ? 'line-through text-espresso-400' : 'text-espresso-900'}`}>
+                        <td className={`tabular px-3 py-3 text-right font-semibold ${isVoid ? 'line-through text-espresso-400 dark:text-espresso-500' : 'text-espresso-900 dark:text-cream-50'}`}>
                           {formatCurrency(bill.total)}
                         </td>
                         <td className="px-4 py-3 text-right">
@@ -242,40 +242,40 @@ export default function UserBillsPage() {
 
                       {/* Expanded Item Breakdown */}
                       {expanded && (
-                        <tr className="bg-cream-50">
+                        <tr className="bg-cream-50 dark:bg-[#141210]">
                           <td />
                           <td colSpan={5} className="px-3 pt-2 pb-4">
-                            <div className="max-w-lg rounded-xl border border-cream-200 bg-white p-4 shadow-card">
-                              <div className="mb-2 flex items-center justify-between border-b border-cream-100 pb-2">
-                                <p className="text-[11px] font-semibold tracking-wider text-espresso-500 uppercase">
+                            <div className="max-w-lg rounded-xl border border-cream-200 bg-white p-4 shadow-card dark:border-white/10 dark:bg-[#1a1714]">
+                              <div className="mb-2 flex items-center justify-between border-b border-cream-100 pb-2 dark:border-white/10">
+                                <p className="text-[11px] font-semibold tracking-wider text-espresso-500 uppercase dark:text-cream-300/70">
                                   {bill.business?.name} · Receipt {bill.id}
                                 </p>
-                                <span className="text-xs text-espresso-400">{formatDateTime(bill.createdAt)}</span>
+                                <span className="text-xs text-espresso-400 dark:text-cream-300/60">{formatDateTime(bill.createdAt)}</span>
                               </div>
                               <ul className="space-y-1.5 text-[13px]">
                                 {bill.lines.map((line) => (
-                                  <li key={line.itemId} className="flex justify-between text-espresso-700">
+                                  <li key={line.itemId} className="flex justify-between text-espresso-700 dark:text-cream-200">
                                     <span>
                                       {line.quantity}× {line.name}
                                     </span>
-                                    <span className="tabular font-medium text-espresso-900">
+                                    <span className="tabular font-medium text-espresso-900 dark:text-cream-50">
                                       {formatCurrency(line.quantity * line.unitPrice)}
                                     </span>
                                   </li>
                                 ))}
                                 {bill.discount > 0 && (
-                                  <li className="flex justify-between border-t border-cream-100 pt-1 text-roast-600">
+                                  <li className="flex justify-between border-t border-cream-100 pt-1 text-roast-600 dark:border-white/10 dark:text-roast-300">
                                     <span>Loyalty Reward Discount</span>
                                     <span className="tabular">−{formatCurrency(bill.discount)}</span>
                                   </li>
                                 )}
-                                <li className="flex justify-between border-t border-cream-200 pt-2 font-semibold text-espresso-900">
+                                <li className="flex justify-between border-t border-cream-200 pt-2 font-semibold text-espresso-900 dark:border-white/10 dark:text-cream-50">
                                   <span>Total Paid</span>
                                   <span className="tabular">{formatCurrency(bill.total)}</span>
                                 </li>
                               </ul>
                               {isVoid && bill.voidReason && (
-                                <p className="mt-2 text-xs text-red-700">Void note: {bill.voidReason}</p>
+                                <p className="mt-2 text-xs text-red-700 dark:text-red-400">Void note: {bill.voidReason}</p>
                               )}
                             </div>
                           </td>

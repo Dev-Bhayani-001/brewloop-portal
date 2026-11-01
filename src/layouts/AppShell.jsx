@@ -6,6 +6,7 @@ import { Command, LogOut, Menu as MenuIcon, RotateCcw, Search, X } from 'lucide-
 import Avatar from '../components/Avatar'
 import BrandMark from '../components/BrandMark'
 import CommandPalette from '../components/CommandPalette'
+import ThemeToggle from '../components/ThemeToggle'
 import Toaster from '../components/Toaster'
 import { resetDemoData } from '../app/store'
 import { selectCurrentUser } from '../app/selectors'
@@ -76,7 +77,12 @@ function SidebarContent({ navigation, header, onNavigate, onOpenPalette }) {
         ))}
       </nav>
 
-      <div className="mt-4 rounded-2xl bg-white/5 p-2 ring-1 ring-white/10">
+      <div className="mt-4 px-1">
+        <p className="mb-1.5 text-[10px] font-medium tracking-[0.16em] text-espresso-400 uppercase">Appearance</p>
+        <ThemeToggle variant="sidebar" className="w-full" />
+      </div>
+
+      <div className="mt-3 rounded-2xl bg-white/5 p-2 ring-1 ring-white/10">
         <div className="flex items-center gap-3 px-1">
           <Avatar name={user?.name} />
           <div className="min-w-0 flex-1">
@@ -132,24 +138,25 @@ export default function AppShell({ navigation, header, mobileTabs, commands, sea
       </aside>
 
       {/* Mobile top bar */}
-      <div className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-espresso-900/5 bg-cream-100/80 px-4 backdrop-blur-xl lg:hidden">
+      <div className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-espresso-900/5 bg-cream-100/80 px-4 backdrop-blur-xl dark:border-white/10 dark:bg-[#121110]/80 lg:hidden">
         <BrandMark />
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
+          <ThemeToggle compact />
           <button
             type="button"
             onClick={() => setPaletteOpen(true)}
-            className="flex size-10 items-center justify-center rounded-full text-espresso-800 hover:bg-cream-200"
+            className="flex size-9 items-center justify-center rounded-full text-espresso-800 hover:bg-cream-200 dark:text-cream-200 dark:hover:bg-white/10"
             aria-label="Search"
           >
-            <Command className="size-5" />
+            <Command className="size-4" />
           </button>
           <button
             type="button"
             onClick={() => setDrawerOpen(true)}
-            className="flex size-10 items-center justify-center rounded-full bg-white text-espresso-900 shadow-card"
+            className="flex size-9 items-center justify-center rounded-full bg-white text-espresso-900 shadow-card dark:bg-[#1e1b18] dark:text-cream-50"
             aria-label="Open menu"
           >
-            <MenuIcon className="size-5" />
+            <MenuIcon className="size-4" />
           </button>
         </div>
       </div>
@@ -179,14 +186,22 @@ export default function AppShell({ navigation, header, mobileTabs, commands, sea
         </div>
       )}
 
-      <main key={location.pathname} className="mx-auto max-w-7xl animate-pop-in px-4 pt-6 pb-32 sm:px-6 lg:px-8 lg:pt-9 lg:pb-12">
+      {/* Desktop top header with prominent Theme Switcher */}
+      <div className="hidden lg:flex items-center justify-end px-8 pt-5 pb-0">
+        <div className="flex items-center gap-2.5 rounded-2xl bg-cream-200/50 p-1.5 ring-1 ring-espresso-900/5 dark:bg-[#1a1815] dark:ring-white/10">
+          <span className="pl-2 text-[11px] font-semibold tracking-wider text-espresso-500 uppercase dark:text-cream-300/70">Theme</span>
+          <ThemeToggle />
+        </div>
+      </div>
+
+      <main key={location.pathname} className="mx-auto max-w-7xl animate-pop-in px-4 pt-4 pb-32 sm:px-6 lg:px-8 lg:pt-6 lg:pb-12">
         <Outlet />
       </main>
 
       {mobileTabs && (
         <nav
           aria-label="Quick navigation"
-          className="fixed inset-x-3 bottom-3 z-20 flex items-center justify-around rounded-full bg-white/90 px-2 py-1.5 shadow-pop ring-1 ring-espresso-900/5 backdrop-blur-xl lg:hidden"
+          className="fixed inset-x-3 bottom-3 z-20 flex items-center justify-around rounded-full bg-white/90 px-2 py-1.5 shadow-pop ring-1 ring-espresso-900/5 backdrop-blur-xl dark:bg-[#1a1815]/95 dark:ring-white/10 lg:hidden"
         >
           {mobileTabs.map((tab) =>
             tab.action === 'palette' ? (

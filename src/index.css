@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /*
  * Brewloop design tokens — refined editorial system.
  * Warm paper neutrals, deep ink, one terracotta accent, and muted tints for
@@ -58,44 +60,137 @@
 
 @layer base {
   html {
-    @apply bg-cream-100 text-espresso-900 antialiased;
+    @apply bg-cream-100 text-espresso-900 antialiased transition-colors duration-150;
+  }
+  html.dark,
+  [data-theme='dark'] {
+    color-scheme: dark;
+    background-color: #121110;
+    color: #f7f5f1;
+
+    /* Bento tile tints: moody roasted tones */
+    --color-tint-sage: #18231a;
+    --color-tint-stone: #211e1a;
+    --color-tint-blush: #291c17;
+    --color-tint-mist: #172128;
+    --color-tint-sand: #252014;
+
+    --shadow-card: 0 0 0 1px rgba(255, 255, 255, 0.08);
+    --shadow-soft: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
   }
   body {
     @apply min-h-screen font-sans text-[15px] leading-normal;
     font-feature-settings: "ss01", "cv11";
   }
+  html.dark body,
+  [data-theme='dark'] body {
+    background-color: #121110;
+    color: #f7f5f1;
+  }
   ::selection {
     @apply bg-roast-100 text-espresso-900;
+  }
+  html.dark ::selection,
+  [data-theme='dark'] ::selection {
+    @apply bg-roast-700 text-cream-50;
   }
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-espresso-900;
   }
+  html.dark :focus-visible,
+  [data-theme='dark'] :focus-visible {
+    @apply outline-roast-400;
+  }
   input[type='number']::-webkit-inner-spin-button {
     -webkit-appearance: none;
+  }
+
+  /*
+   * Dark Mode Typography & Contrast Overrides
+   * Ensures high readability without modifying dozens of legacy components.
+   */
+  html.dark .text-espresso-950,
+  [data-theme='dark'] .text-espresso-950,
+  html.dark .text-espresso-900,
+  [data-theme='dark'] .text-espresso-900 {
+    color: #fcfbf9;
+  }
+  html.dark .text-espresso-800,
+  [data-theme='dark'] .text-espresso-800 {
+    color: #eeeae3;
+  }
+  html.dark .text-espresso-700,
+  [data-theme='dark'] .text-espresso-700 {
+    color: #ded8ce;
+  }
+  html.dark .text-espresso-600,
+  [data-theme='dark'] .text-espresso-600 {
+    color: #c7c1b5;
+  }
+  html.dark .text-espresso-500,
+  [data-theme='dark'] .text-espresso-500 {
+    color: #aba497;
+  }
+  html.dark .text-espresso-400,
+  [data-theme='dark'] .text-espresso-400 {
+    color: #8e877c;
+  }
+
+  /* Dark mode table & divider borders */
+  html.dark .border-cream-200,
+  [data-theme='dark'] .border-cream-200,
+  html.dark .border-cream-300,
+  [data-theme='dark'] .border-cream-300,
+  html.dark .divide-cream-200 > :not([hidden]) ~ :not([hidden]),
+  [data-theme='dark'] .divide-cream-200 > :not([hidden]) ~ :not([hidden]) {
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  /*
+   * Dark mode hover states: subtle warm highlight instead of blinding white
+   */
+  html.dark .hover\:bg-cream-50:hover,
+  [data-theme='dark'] .hover\:bg-cream-50:hover,
+  html.dark .hover\:bg-cream-100:hover,
+  [data-theme='dark'] .hover\:bg-cream-100:hover,
+  html.dark .hover\:bg-white:hover,
+  [data-theme='dark'] .hover\:bg-white:hover {
+    background-color: rgba(255, 255, 255, 0.06);
+  }
+
+  /* Dark mode card backgrounds for general bg-white containers */
+  html.dark .bg-white.shadow-card,
+  [data-theme='dark'] .bg-white.shadow-card,
+  html.dark .rounded-2xl.border.bg-white,
+  [data-theme='dark'] .rounded-2xl.border.bg-white,
+  html.dark .rounded-3xl.bg-white,
+  [data-theme='dark'] .rounded-3xl.bg-white {
+    background-color: #1a1714;
+    border-color: rgba(255, 255, 255, 0.08);
   }
 }
 
 @layer components {
   .card {
-    @apply rounded-2xl bg-white shadow-card;
+    @apply rounded-2xl bg-white shadow-card transition-colors duration-150 dark:bg-[#1a1816] dark:text-cream-100 dark:shadow-none dark:ring-1 dark:ring-white/10;
   }
   .field-label {
-    @apply mb-1.5 block text-[13px] font-medium text-espresso-700;
+    @apply mb-1.5 block text-[13px] font-medium text-espresso-700 dark:text-cream-200;
   }
   .field-input {
-    @apply h-11 w-full rounded-xl border border-cream-300 bg-white px-3.5 text-[15px] text-espresso-900 transition outline-none placeholder:text-espresso-400 hover:border-espresso-400/60 focus:border-espresso-900 focus:ring-4 focus:ring-espresso-900/5 disabled:bg-cream-100 aria-[invalid=true]:border-red-400 aria-[invalid=true]:focus:ring-red-500/10;
+    @apply h-11 w-full rounded-xl border border-cream-300 bg-white px-3.5 text-[15px] text-espresso-900 transition outline-none placeholder:text-espresso-400 hover:border-espresso-400/60 focus:border-espresso-900 focus:ring-4 focus:ring-espresso-900/5 disabled:bg-cream-100 aria-[invalid=true]:border-red-400 aria-[invalid=true]:focus:ring-red-500/10 dark:border-white/15 dark:bg-[#151412] dark:text-cream-50 dark:placeholder:text-espresso-500 dark:hover:border-white/30 dark:focus:border-roast-400 dark:focus:ring-roast-400/15 dark:disabled:bg-white/5;
   }
   .eyebrow {
-    @apply text-[11px] font-medium tracking-[0.14em] text-espresso-500 uppercase;
+    @apply text-[11px] font-medium tracking-[0.14em] text-espresso-500 uppercase dark:text-cream-300/80;
   }
   .display-title {
-    @apply font-display font-normal tracking-[-0.01em] text-espresso-900;
+    @apply font-display font-normal tracking-[-0.01em] text-espresso-900 dark:text-cream-50;
   }
   .tabular {
     font-variant-numeric: tabular-nums;
   }
   .kbd {
-    @apply inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-current/20 px-1 font-mono text-[11px];
+    @apply inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-current/20 px-1 font-mono text-[11px] dark:border-white/20;
   }
 }
 
