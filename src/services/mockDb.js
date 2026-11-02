@@ -78,6 +78,20 @@ const users = [
     createdAt: daysAgo(90),
   },
   {
+    id: 'usr_customer_new',
+    businessId: 'biz_kettle',
+    customerId: null,
+    role: 'customer',
+    name: 'Tara Nair',
+    phone: '+91 98250 88888',
+    email: 'newcustomer@brewloop.app',
+    demoPassword: 'user123',
+    mustResetPassword: false,
+    status: 'active',
+    failedLogins: 0,
+    createdAt: daysAgo(1),
+  },
+  {
     id: 'usr_meera',
     businessId: 'biz_kettle',
     role: 'manager',
@@ -281,6 +295,150 @@ function buildOffers(businessId, prefix) {
   ]
 }
 
+const withoutLiveOffers = (offers) => offers.map((offer) => ({ ...offer, active: false }))
+
+/**
+ * Small cafés that put the demo customer's wallet into each state the loyalty page
+ * handles, so they can all be seen without editing data. Progress is set directly
+ * rather than replayed from bills, which keeps each state exact.
+ */
+const DEMO_SCENARIOS = [
+  {
+    // No live offers and nothing to claim.
+    business: { id: 'biz_quiet', name: 'Quiet Corner', city: 'Vadodara', cardPrefix: 'QC' },
+    configureOffers: withoutLiveOffers,
+  },
+  {
+    // Every offer has ended, but a reward earned earlier is still unclaimed.
+    business: { id: 'biz_lastcall', name: 'Last Call', city: 'Rajkot', cardPrefix: 'LC' },
+    configureOffers: (offers) => offers.map((offer) => ({ ...offer, validTo: isoDay(5) })),
+    rewardOffers: ['coffee'],
+  },
+  {
+    // Brand-new member: offers are live, no stamps yet.
+    business: { id: 'biz_firstsip', name: 'First Sip', city: 'Mumbai', cardPrefix: 'FS' },
+  },
+  {
+    // More than one reward waiting at the same café.
+    business: { id: 'biz_doubleshot', name: 'Double Shot', city: 'Jaipur', cardPrefix: 'DS' },
+    progress: { coffee: 2, '7th_bill': 1 },
+    rewardOffers: ['coffee', '7th_bill'],
+  },
+  {
+    // Too many stamps for a row of slots, so the page falls back to a meter.
+    business: { id: 'biz_longpour', name: 'Long Pour', city: 'Bengaluru', cardPrefix: 'LP' },
+    configureOffers: (offers) =>
+      offers
+        .filter((offer) => offer.id.endsWith('_offer_coffee'))
+        .map((offer) => ({ ...offer, threshold: 20 })),
+    progress: { coffee: 13 },
+  },
+  {
+    // Visit-based only: stamps come from bills, so there's no list of qualifying items.
+    business: { id: 'biz_regulars', name: 'Regulars Table', city: 'Chennai', cardPrefix: 'RT' },
+    configureOffers: (offers) => offers.filter((offer) => offer.id.endsWith('_offer_7th_bill')),
+    progress: { '7th_bill': 3 },
+  },
+]
+
+/** Everyday cafés that take the demo wallet past 20 cards: [name, city, prefix, coffee stamps, visit stamps, rewards]. */
+const DEMO_EXTRA_CAFES = [
+  ['Bean Theory', 'Ahmedabad', 'BT', 5, 2, ['coffee']],
+  ['Copper Kettle', 'Pune', 'CK', 4, 5, []],
+  ['Filter House', 'Chennai', 'FH', 1, 0, []],
+  ['Saffron Cup', 'Jaipur', 'SC', 2, 3, []],
+  ['Monsoon Roasters', 'Kochi', 'MR', 5, 1, []],
+  ['The Daily Drip', 'Mumbai', 'DD', 0, 1, ['7th_bill']],
+  ['Old Town Brew', 'Delhi', 'OT', 3, 4, []],
+  ['Marigold Café', 'Udaipur', 'MC', 1, 1, []],
+  ['Northern Lights', 'Shimla', 'NL', 4, 0, []],
+  ['Pour Decisions', 'Bengaluru', 'PD', 2, 2, []],
+  ['Sunday Roast Co.', 'Goa', 'SR', 0, 0, []],
+  ['Tamarind Tree', 'Hyderabad', 'TT', 3, 1, ['coffee']],
+  ['Verandah', 'Kolkata', 'VR', 5, 5, []],
+  ['Wild Bean', 'Coorg', 'WB', 1, 3, []],
+  ['Yellow Door', 'Lucknow', 'YD', 2, 0, []],
+].map(([name, city, cardPrefix, coffee, visits, rewardOffers]) => ({
+  business: { id: `biz_${cardPrefix.toLowerCase()}`, name, city, cardPrefix },
+  progress: { coffee, '7th_bill': visits },
+  rewardOffers,
+}))
+
+/** Past visits matching a scenario's stamps, so its receipts agree with its progress. */
+function buildScenarioBills(business, customer, offers, items, progress) {
+  const prefix = business.cardPrefix.toLowerCase()
+  const coffeeStamps = progress.coffee ?? 0
+  const visitStamps = progress['7th_bill'] ?? 0
+  const cappuccino = items.find((item) => item.id === `${prefix}_item_0_1`)
+  const croissant = items.find((item) => item.id === `${prefix}_item_3_0`)
+  const dayOffset = prefix.charCodeAt(0) % 5
+
+  return Array.from({ length: Math.max(coffeeStamps, visitStamps) }, (_, index) => {
+    const item = index < coffeeStamps ? cappuccino : croissant
+    const contributions = []
+    if (index < coffeeStamps) contributions.push({ offerId: `${prefix}_offer_coffee`, units: 1, rewardsEarned: 0 })
+    if (index < visitStamps) contributions.push({ offerId: `${prefix}_offer_7th_bill`, units: 1, rewardsEarned: 0 })
+    return {
+      id: `${prefix}_bill_${index + 1}`,
+      businessId: business.id,
+      customerId: customer.id,
+      createdBy: null,
+      lines: [{ itemId: item.id, name: item.name, quantity: 1, unitPrice: item.price }],
+      subtotal: item.price,
+      discount: 0,
+      total: item.price,
+      status: 'active',
+      redeemedRewardId: null,
+      redeemedOfferId: null,
+      createdAt: daysAgo(dayOffset + 2 + index * 5, 9 + (index % 10), 15),
+      contributions,
+    }
+  })
+}
+
+function seedScenario(state, scenario, random) {
+  const business = { plan: 'silver', status: 'active', createdAt: daysAgo(30), ...scenario.business }
+  const prefix = business.cardPrefix.toLowerCase()
+  const menu = buildMenu(business.id, prefix)
+  const people = buildCustomers(business, 1, random)
+  const [customer] = people.customers
+  const allOffers = buildOffers(business.id, prefix).filter((offer) => offer.active)
+  const offers = scenario.configureOffers?.(allOffers) ?? allOffers
+
+  state.businesses.push(business)
+  state.categories.push(...menu.categories)
+  state.items.push(...menu.items)
+  state.customers.push(...people.customers)
+  state.cards.push(...people.cards)
+  state.offers.push(...offers)
+
+  Object.entries(scenario.progress ?? {}).forEach(([offerKey, count]) => {
+    const offer = offers.find((entry) => entry.id === `${prefix}_offer_${offerKey}`)
+    state.progress[progressKey(customer.id, offer.id)] = {
+      customerId: customer.id,
+      offerId: offer.id,
+      count,
+      thresholdSnapshot: offer.threshold,
+      cycleStartedAt: daysAgo(14),
+    }
+  })
+
+  state.bills.push(...buildScenarioBills(business, customer, offers, menu.items, scenario.progress ?? {}))
+
+  ;(scenario.rewardOffers ?? []).forEach((offerKey, index) => {
+    state.rewards.push({
+      id: `${prefix}_rwd_${index + 1}`,
+      businessId: business.id,
+      customerId: customer.id,
+      offerId: `${prefix}_offer_${offerKey}`,
+      status: 'available',
+      earnedBillId: null,
+      redeemedBillId: null,
+      createdAt: daysAgo(6 + index),
+    })
+  })
+}
+
 /** Replays generated bills through the offers engine so progress & rewards are consistent. */
 function buildBills({ business, customers, menuItems, offers, staffIds, random, billCount }) {
   const itemsById = Object.fromEntries(menuItems.map((item) => [item.id, item]))
@@ -378,7 +536,7 @@ function buildSmsLog(business, customers, random) {
 export function buildInitialState() {
   const random = createRandom(7)
   const state = {
-    businesses,
+    businesses: [...businesses],
     users,
     categories: [],
     items: [],
@@ -421,6 +579,9 @@ export function buildInitialState() {
     if (business.plan === 'platinum') state.smsLog.push(...buildSmsLog(business, people.customers, random))
   })
 
+  // Seeded last so the shared random sequence, and the cafés above, stay unchanged.
+  for (const scenario of [...DEMO_SCENARIOS, ...DEMO_EXTRA_CAFES]) seedScenario(state, scenario, random)
+
   return state
 }
 
@@ -429,6 +590,7 @@ export const DEMO_ACCOUNTS = [
   { label: 'Manager · Platinum café', identifier: 'meera@kettlecrumb.in', password: 'manager123' },
   { label: 'Staff · counter', identifier: 'arjun@kettlecrumb.in', password: 'staff123' },
   { label: 'Customer · User panel', identifier: 'customer@brewloop.app', password: 'user123' },
+  { label: 'Customer · No cards yet', identifier: 'newcustomer@brewloop.app', password: 'user123' },
   { label: 'Manager · Silver café', identifier: 'nisha@morninggrind.in', password: 'manager123' },
   { label: 'First login (temp password)', identifier: 'kavya@kettlecrumb.in', password: 'TEMP-4821' },
 ]

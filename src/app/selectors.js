@@ -5,6 +5,7 @@
 import { createSelector } from '@reduxjs/toolkit'
 
 import { getPlan, getPlanFeatures } from '../utils/planFeatures'
+import { rankCafes, toneForIndex } from '../features/loyalty/loyaltyPresentation'
 import { isOfferLive, progressKey } from '../features/offers/offersEngine'
 
 export const selectSession = (state) => state.auth.session
@@ -99,8 +100,17 @@ export const selectCustomerCards = createSelector(
     (state) => state.offers.offers,
     (state) => state.loyalty.progress,
     (state) => state.loyalty.rewards,
+    (state) => state.menu.categories,
+    (state) => state.menu.items,
+    (state) => state.billing.bills,
   ],
-  (memberships, allCards, allOffers, progress, allRewards) => {
+  (memberships, allCards, allOffers, progress, allRewards, allCategories, allItems, allBills) => {
+    const lastVisitByCustomer = {}
+    for (const bill of allBills) {
+      if (bill.status !== 'active') continue
+      if (bill.createdAt > (lastVisitByCustomer[bill.customerId] ?? '')) lastVisitByCustomer[bill.customerId] = bill.createdAt
+    }
+
     return memberships.map(({ customer, business }) => {
       const card = allCards.find((c) => c.customerId === customer.id)
       const offers = allOffers.filter((o) => o.businessId === business?.id && isOfferLive(o))
@@ -115,16 +125,41 @@ export const selectCustomerCards = createSelector(
       const customerRewards = allRewards
         .filter((r) => r.customerId === customer.id)
         .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      // A customer's cards span cafés, so menu data can't come from the session-scoped selectors.
+      const items = allItems.filter((item) => item.businessId === business?.id)
+      const categories = allCategories.filter((category) => category.businessId === business?.id)
 
       return {
         customer,
         business,
         card,
+        lastVisitAt: lastVisitByCustomer[customer.id] ?? null,
+        items,
+        offers: allOffers.filter((o) => o.businessId === business?.id),
+        lookups: {
+          categoriesById: Object.fromEntries(categories.map((category) => [category.id, category])),
+          itemsById: Object.fromEntries(items.map((item) => [item.id, item])),
+        },
         offerProgress,
         availableRewards: customerRewards.filter((r) => r.status === 'available'),
         rewardHistory: customerRewards,
       }
     })
+  },
+)
+
+/**
+ * The customer's wallet, best café first. Tone comes from membership order so a café
+ * keeps its colour when the ranking changes. With nothing selected, opens on the top card.
+ */
+export const selectWallet = createSelector(
+  [selectCustomerCards, (state) => state.ui.activeCafeId],
+  (cards, activeCafeId) => {
+    const ranked = rankCafes(cards.map((entry, index) => ({ ...entry, tone: toneForIndex(index) })))
+    return {
+      cards: ranked,
+      activeEntry: ranked.find((entry) => entry.business?.id === activeCafeId) ?? ranked[0] ?? null,
+    }
   },
 )
 

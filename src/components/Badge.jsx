@@ -1,6 +1,6 @@
 const TONES = {
   neutral: 'bg-cream-200/70 text-espresso-700 dark:bg-white/10 dark:text-cream-200',
-  success: 'bg-leaf-50 text-leaf-700 dark:bg-leaf-700/25 dark:text-leaf-500',
+  success: 'bg-leaf-50 text-leaf-700 dark:bg-leaf-700/25 dark:text-emerald-300',
   warning: 'bg-amber-50 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300',
   danger: 'bg-red-50 text-red-700 dark:bg-red-500/20 dark:text-red-300',
   accent: 'bg-roast-50 text-roast-700 dark:bg-roast-500/25 dark:text-roast-200',

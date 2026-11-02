@@ -29,8 +29,14 @@ function NavItem({ item, onNavigate }) {
         }`
       }
     >
-      <item.icon className="size-[18px]" strokeWidth={1.75} />
+      <item.icon className="size-[18px] transition-transform duration-200 group-hover:scale-110" strokeWidth={1.75} />
       <span className="flex-1">{item.label}</span>
+      {item.badge > 0 && (
+        <span className="tabular flex h-5 min-w-5 items-center justify-center rounded-full bg-roast-400 px-1.5 text-[11px] font-semibold text-espresso-950">
+          {item.badge}
+          {item.badgeLabel && <span className="sr-only"> {item.badgeLabel}</span>}
+        </span>
+      )}
       {item.locked && (
         <span className="rounded-full px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-cream-300 uppercase ring-1 ring-white/15">
           Gold
@@ -49,7 +55,7 @@ function SidebarContent({ navigation, header, onNavigate, onOpenPalette }) {
       <div className="px-3">
         <BrandMark inverted />
       </div>
-      {header && <div className="mt-6">{header}</div>}
+      {header && <div className="mt-6">{typeof header === 'function' ? header({ onNavigate }) : header}</div>}
 
       <button
         type="button"

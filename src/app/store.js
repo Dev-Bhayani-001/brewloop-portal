@@ -12,7 +12,7 @@ import uiReducer from '../features/ui/uiSlice'
 import { buildInitialState } from '../services/mockDb'
 
 // Bump when the mock data shape changes so stale localStorage is discarded.
-const STORAGE_KEY = 'brewloop-demo-v3'
+const STORAGE_KEY = 'brewloop-demo-v6'
 
 function loadPreloadedState() {
   try {

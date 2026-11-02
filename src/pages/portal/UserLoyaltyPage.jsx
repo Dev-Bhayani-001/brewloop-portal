@@ -1,68 +1,198 @@
-import { useMemo, useState } from 'react'
-import { useSelector } from 'react-redux'
-import {
-  Coffee,
-  CreditCard,
-  Gift,
-  HelpCircle,
-  MapPin,
-  Store,
-} from 'lucide-react'
+import { useRef, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { HelpCircle, QrCode, RotateCcw, Ticket } from 'lucide-react'
 
-import Badge from '../../components/Badge'
 import EmptyState from '../../components/EmptyState'
-import LoyaltyCard from '../../components/LoyaltyCard'
-import PageHeader from '../../components/PageHeader'
-import StampProgress from '../../components/StampProgress'
-import StatTile from '../../components/StatTile'
-import { selectCustomerCards, selectItems } from '../../app/selectors'
-import { formatCurrency, formatDate } from '../../utils/format'
+import CafeDirectory from '../../features/loyalty/CafeDirectory'
+import ProgressRing from '../../features/loyalty/ProgressRing'
+import RewardTicket from '../../features/loyalty/RewardTicket'
+import StampTrail from '../../features/loyalty/StampTrail'
+import WalletStack from '../../features/loyalty/WalletStack'
+import {
+  greetingFor,
+  itemsEarningStamps,
+  primaryProgress,
+  remainingLabel,
+  rewardTitle,
+  rewardWithArticle,
+  walletHeadline,
+} from '../../features/loyalty/loyaltyPresentation'
+import { selectWallet } from '../../app/selectors'
+import { activeCafeSelected } from '../../features/ui/uiSlice'
+import { formatCurrency } from '../../utils/format'
+
+const MENU_PREVIEW_LIMIT = 8
+
+/** Brings an element on screen, without moving the page if it's already visible. */
+function revealElement(element) {
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  element?.scrollIntoView({ block: 'nearest', behavior: prefersReducedMotion ? 'auto' : 'smooth' })
+}
+
+/** Only promises stamps when there's a live offer to earn them on. */
+function counterHint(progress, availableRewards) {
+  if (progress) return 'Your barista scans it, you collect the stamp.'
+  if (availableRewards.length) return 'Show it at the counter to claim your reward.'
+  return 'Keep it handy for the next offer.'
+}
+
+function WalletHero({ cards, activeEntry, isFlipped, onFlip, onSelect, heroRef }) {
+  const progress = primaryProgress(activeEntry)
+  const { lead, tail } = walletHeadline(activeEntry)
+  const { business, customer, availableRewards, lookups } = activeEntry
+  const firstName = customer?.name?.split(' ')[0]
+  const FlipIcon = isFlipped ? RotateCcw : QrCode
+  const stackRef = useRef(null)
+
+  // On phones the card can sit below the fold, and the barista needs to see the QR.
+  const handleFlipButton = () => {
+    if (!isFlipped) revealElement(stackRef.current)
+    onFlip()
+  }
+
+  return (
+    <section ref={heroRef} className={`${activeEntry.tone} scroll-mt-20 wallet-surface rounded-4xl p-6 text-cream-50 shadow-lifted ring-white/10 sm:p-9 lg:p-11 dark:shadow-[0_24px_90px_-40px_var(--tone-glow)] dark:ring-1`}>
+      <div className="grid items-center gap-9 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:gap-12">
+        <div className="min-w-0">
+          <p className="text-[13px] font-medium text-cream-200">
+            {greetingFor()}
+            {firstName && `, ${firstName}`}
+          </p>
+          <div aria-live="polite">
+            <h1 key={business?.id} className="display-title mt-3 animate-fade-up text-[44px] leading-[1.02] text-cream-50 sm:text-[60px]">
+              <em className="text-[var(--tone-ink)]">{lead}</em>
+              <br />
+              {tail}
+            </h1>
+          </div>
+
+          {progress && (
+            <div key={`${business?.id}-stamps`} className="mt-7">
+              <StampTrail
+                count={progress.count}
+                threshold={progress.threshold}
+                rewardLabel={rewardTitle(progress.offer, lookups)}
+                ruleType={progress.offer.ruleType}
+              />
+              <p className="mt-3 text-[13px] text-cream-200">
+                {progress.count} of {progress.threshold} stamps on {progress.offer.name} at {business?.name}
+                {availableRewards.length > 0 &&
+                  ` · ${remainingLabel(progress.offer, progress.threshold - progress.count, lookups)} until your next one`}
+              </p>
+            </div>
+          )}
+
+          <div className="mt-7 flex flex-wrap items-center gap-x-4 gap-y-2">
+            <button
+              type="button"
+              onClick={handleFlipButton}
+              className="inline-flex h-11 items-center gap-2 rounded-full bg-cream-50 px-5 text-sm font-semibold text-[#171513] transition hover:-translate-y-0.5 hover:shadow-lifted active:translate-y-0"
+            >
+              <FlipIcon className="size-4" />
+              {isFlipped ? 'Back to card' : 'Show my QR'}
+            </button>
+            <p className="text-[13px] text-cream-200">{counterHint(progress, availableRewards)}</p>
+          </div>
+        </div>
+
+        <div ref={stackRef} className="scroll-mt-6 scroll-mb-28">
+          <WalletStack cards={cards} activeEntry={activeEntry} isFlipped={isFlipped} onFlip={onFlip} onSelect={onSelect} />
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function RewardsPanel({ entry }) {
+  const { availableRewards, offers, lookups } = entry
+  const progress = primaryProgress(entry)
+
+  return (
+    <div className="space-y-3">
+      <h2 className="display-title text-[26px]">Ready to redeem</h2>
+      {availableRewards.length > 0 ? (
+        availableRewards.map((reward) => (
+          <RewardTicket
+            key={reward.id}
+            reward={reward}
+            offer={offers.find((offer) => offer.id === reward.offerId)}
+            lookups={lookups}
+          />
+        ))
+      ) : (
+        <div className="flex items-center gap-4 rounded-2xl border-[1.5px] border-dashed border-cream-300 p-5 dark:border-white/15">
+          <Ticket className="size-7 shrink-0 text-espresso-400 dark:text-cream-300/60" strokeWidth={1.5} />
+          <div>
+            <p className="text-sm font-semibold text-espresso-900 dark:text-cream-50">
+              {progress ? 'Your next reward lands here' : 'No offers running right now'}
+            </p>
+            <p className="mt-0.5 text-[13px] text-espresso-500 dark:text-cream-300/80">
+              {progress ? (
+                <>
+                  {remainingLabel(progress.offer, progress.threshold - progress.count, lookups)} to go for{' '}
+                  {rewardWithArticle(progress.offer, lookups)}.
+                </>
+              ) : (
+                `${entry.business?.name ?? 'This café'} has no stamp offers at the moment. Your card stays active for the next one.`
+              )}
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function AlsoEarningPanel({ entry }) {
+  const featured = primaryProgress(entry)
+  const others = entry.offerProgress.filter((progress) => progress !== featured)
+  if (!others.length) return null
+
+  return (
+    <div className="space-y-3">
+      <h2 className="display-title text-[26px]">Also earning</h2>
+      {others.map((progress) => (
+        <div key={progress.offer.id} className="card flex items-center gap-3.5 p-3.5">
+          <ProgressRing count={progress.count} threshold={progress.threshold} />
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-espresso-900 dark:text-cream-50">{progress.offer.name}</p>
+            <p className="truncate text-[13px] text-espresso-500 dark:text-cream-300/80">
+              {remainingLabel(progress.offer, progress.threshold - progress.count, entry.lookups)} to{' '}
+              {rewardWithArticle(progress.offer, entry.lookups)}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function StampMenu({ businessName, items }) {
+  return (
+    <section className="card p-6 sm:p-8">
+      <p className="eyebrow">{businessName}</p>
+      <h2 className="display-title mt-1 text-[32px] leading-tight">Every one of these earns a stamp</h2>
+      <ul className="mt-5 grid gap-x-10 gap-y-3 sm:grid-cols-2">
+        {items.slice(0, MENU_PREVIEW_LIMIT).map((item) => (
+          <li key={item.id} className="flex items-baseline gap-2 text-espresso-800 dark:text-cream-100">
+            <span className="truncate font-display text-[19px]">{item.name}</span>
+            <span aria-hidden="true" className="menu-leader" />
+            <span className="tabular text-sm font-medium">{formatCurrency(item.price)}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
 
 export default function UserLoyaltyPage() {
-  const cards = useSelector(selectCustomerCards)
-  const menuItems = useSelector(selectItems)
-  const [selectedShopId, setSelectedShopId] = useState(null)
+  const dispatch = useDispatch()
+  const { cards, activeEntry } = useSelector(selectWallet)
+  // Tracked per café so switching from the sidebar also returns to the card front.
+  const [flippedCafeId, setFlippedCafeId] = useState(null)
+  const heroRef = useRef(null)
 
-  // Default to the first card if not selected
-  const activeCardEntry = useMemo(() => {
-    if (!cards.length) return null
-    if (selectedShopId) {
-      return cards.find((c) => c.business?.id === selectedShopId) ?? cards[0]
-    }
-    return cards[0]
-  }, [cards, selectedShopId])
-
-  // Total rewards across all cards
-  const totalRewardsCount = useMemo(
-    () => cards.reduce((sum, c) => sum + (c.availableRewards?.length ?? 0), 0),
-    [cards],
-  )
-
-  // Active coffee stamp offer for current active card
-  const coffeeProgress = activeCardEntry?.offerProgress.find(
-    (p) => p.offer.ruleType === 'item_count' || p.offer.name.toLowerCase().includes('coffee'),
-  ) ?? activeCardEntry?.offerProgress[0]
-
-  const coffeeRemaining = coffeeProgress
-    ? Math.max(0, coffeeProgress.threshold - coffeeProgress.count)
-    : 0
-
-  // Qualifying coffee items for the active shop
-  const qualifyingCoffeeItems = useMemo(() => {
-    if (!activeCardEntry?.business?.id) return []
-    return menuItems.filter(
-      (item) =>
-        item.businessId === activeCardEntry.business.id &&
-        item.active &&
-        (item.categoryId?.includes('cat_0') ||
-          item.name.toLowerCase().includes('coffee') ||
-          ['espresso', 'cappuccino', 'flat white', 'cold brew', 'latte', 'chai'].some((c) =>
-            item.name.toLowerCase().includes(c),
-          )),
-    )
-  }, [menuItems, activeCardEntry])
-
-  if (!cards.length) {
+  if (!activeEntry) {
     return (
       <EmptyState
         icon={HelpCircle}
@@ -72,235 +202,40 @@ export default function UserLoyaltyPage() {
     )
   }
 
+  const activeCafeId = activeEntry.business?.id
+  const isFlipped = flippedCafeId === activeCafeId
+  const stampItems = itemsEarningStamps(primaryProgress(activeEntry)?.offer, activeEntry.items)
+
+  const handleSelect = (businessId) => {
+    dispatch(activeCafeSelected(businessId))
+    setFlippedCafeId(null)
+    // A tile far down a long list would otherwise change a hero that's off screen.
+    revealElement(heroRef.current)
+  }
+
   return (
-    <div className="space-y-8">
-      {/* 1. Page Header */}
-      <PageHeader
-        eyebrow="Member Access"
-        title="My Loyalty Cards"
-        description="View your digital loyalty cards across coffee shops, track coffee stamps, and redeem rewards."
+    <div className={`${activeEntry.tone} space-y-5 lg:space-y-6`}>
+      <WalletHero
+        heroRef={heroRef}
+        cards={cards}
+        activeEntry={activeEntry}
+        isFlipped={isFlipped}
+        onFlip={() => setFlippedCafeId(isFlipped ? null : activeCafeId)}
+        onSelect={handleSelect}
       />
 
-      {/* 2. Top Summary KPI Tiles */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatTile
-          label="My Loyalty Cards"
-          value={cards.length}
-          detail={`${cards.length} café membership${cards.length === 1 ? '' : 's'}`}
-          icon={CreditCard}
-        />
-        <StatTile
-          label="Current Coffee Stamps"
-          value={coffeeProgress ? `${coffeeProgress.count} / ${coffeeProgress.threshold}` : '0'}
-          detail={
-            coffeeRemaining > 0
-              ? `${coffeeRemaining} more coffee${coffeeRemaining === 1 ? '' : 's'} to free reward`
-              : 'Free reward ready!'
-          }
-          icon={Coffee}
-          tone="sand"
-        />
-        <StatTile
-          label="Available Rewards"
-          value={totalRewardsCount}
-          detail={
-            totalRewardsCount > 0
-              ? `${totalRewardsCount} reward${totalRewardsCount === 1 ? '' : 's'} ready across cafés`
-              : 'Add coffees to earn stamps'
-          }
-          icon={Gift}
-          tone={totalRewardsCount > 0 ? 'blush' : 'default'}
-        />
-      </div>
+      {cards.length > 1 && <CafeDirectory cards={cards} activeEntry={activeEntry} onSelect={handleSelect} />}
 
-      {/* 3. Coffee Shop Card Switcher (if multiple cards) */}
-      {cards.length > 1 && (
-        <div className="flex flex-col gap-2">
-          <p className="text-xs font-semibold tracking-wider text-espresso-500 uppercase dark:text-cream-300/70">
-            Select Coffee Shop Card
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {cards.map(({ business, card, availableRewards }) => {
-              const isSelected = (activeCardEntry?.business?.id ?? cards[0].business?.id) === business?.id
-              return (
-                <button
-                  key={business?.id ?? card?.id}
-                  type="button"
-                  onClick={() => setSelectedShopId(business?.id)}
-                  className={`flex items-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-medium transition ${
-                    isSelected
-                      ? 'bg-espresso-900 text-cream-50 shadow-soft dark:bg-[#2c2823] dark:text-cream-50 dark:ring-1 dark:ring-white/15'
-                      : 'border border-cream-300 bg-white text-espresso-700 hover:bg-cream-100 hover:text-espresso-900 dark:border-white/10 dark:bg-[#1a1714] dark:text-cream-200 dark:hover:bg-white/10 dark:hover:text-cream-50'
-                  }`}
-                >
-                  <Store className="size-4" />
-                  <span>{business?.name}</span>
-                  <span className={`text-xs ${isSelected ? 'text-cream-300' : 'text-espresso-400 dark:text-cream-300/70'}`}>
-                    ({business?.city})
-                  </span>
-                  {availableRewards.length > 0 && (
-                    <span className="flex size-2 rounded-full bg-roast-400" title="Reward available" />
-                  )}
-                </button>
-              )
-            })}
+      <div className="grid items-start gap-8 pt-3 lg:grid-cols-12">
+        <div className={`space-y-8 ${stampItems.length ? 'lg:col-span-5' : 'lg:col-span-12'}`}>
+          <RewardsPanel entry={activeEntry} />
+          <AlsoEarningPanel entry={activeEntry} />
+        </div>
+        {stampItems.length > 0 && (
+          <div className="lg:col-span-7">
+            <StampMenu businessName={activeEntry.business?.name} items={stampItems} />
           </div>
-        </div>
-      )}
-
-      {/* 4. Active Card Detail & Stamp Progress (2 Columns) */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        {/* Left Column: Loyalty Card */}
-        <div className="space-y-3 lg:col-span-5">
-          <div className="flex items-center justify-between">
-            <h2 className="display-title text-[22px]">Digital Pass</h2>
-            <Badge tone="accent" icon={CreditCard}>
-              {activeCardEntry?.business?.city ?? 'Active'}
-            </Badge>
-          </div>
-
-          <LoyaltyCard
-            businessName={activeCardEntry?.business?.name ?? 'Brewloop'}
-            customerName={activeCardEntry?.customer?.name ?? 'Member'}
-            cardNumber={activeCardEntry?.card?.cardNumber ?? 'KC-10001'}
-            memberSince={formatDate(activeCardEntry?.customer?.createdAt)}
-          />
-
-          <p className="rounded-xl border border-cream-200 bg-white p-3 text-xs text-espresso-600 shadow-card dark:border-white/10 dark:bg-[#1a1714] dark:text-cream-200">
-            💡 <strong className="font-medium text-espresso-900 dark:text-cream-50">Barista Scan:</strong> Show this card or QR code to the cashier at{' '}
-            <strong>{activeCardEntry?.business?.name}</strong> when ordering to collect stamps.
-          </p>
-        </div>
-
-        {/* Right Column: Coffee Progress & Rewards */}
-        <div className="space-y-4 lg:col-span-7">
-          <div className="card p-6">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 className="display-title text-[22px]">Coffee Reward Progress</h2>
-                <p className="mt-1 text-sm text-espresso-600 dark:text-cream-200/80">
-                  Track how many coffee items you have added at {activeCardEntry?.business?.name}.
-                </p>
-              </div>
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-roast-50 text-roast-600 dark:bg-roast-950/50 dark:text-roast-300">
-                <Coffee className="size-5" />
-              </span>
-            </div>
-
-            {/* Live Progress Bar / Stamp Dots */}
-            {coffeeProgress && (
-              <div className="mt-5 rounded-2xl bg-cream-50 p-4 ring-1 ring-cream-200 dark:bg-[#141210] dark:ring-white/10">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-sm font-semibold text-espresso-900 dark:text-cream-50">{coffeeProgress.offer.name}</p>
-                  <span className="text-xs font-medium text-espresso-500 dark:text-cream-300/70">
-                    {coffeeProgress.count} of {coffeeProgress.threshold} stamps
-                  </span>
-                </div>
-
-                <div className="mt-3">
-                  <StampProgress count={coffeeProgress.count} threshold={coffeeProgress.threshold} size="md" />
-                </div>
-
-                <div className="mt-3 rounded-lg border border-cream-200 bg-white p-2.5 text-xs text-espresso-700 dark:border-white/10 dark:bg-[#1a1714] dark:text-cream-200">
-                  {coffeeRemaining > 0 ? (
-                    <span>
-                      ☕ You have added <strong className="font-semibold text-espresso-900 dark:text-cream-50">{coffeeProgress.count}</strong> coffee items. Add{' '}
-                      <strong className="font-semibold text-roast-600 dark:text-roast-400">{coffeeRemaining} more</strong> to unlock your free coffee reward!
-                    </span>
-                  ) : (
-                    <span className="font-semibold text-leaf-700 dark:text-leaf-600">
-                      🎉 Stamp goal reached! Your free coffee reward is unlocked.
-                    </span>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Other active offers at this café */}
-            {activeCardEntry?.offerProgress.length > 1 && (
-              <div className="mt-4 space-y-2">
-                {activeCardEntry.offerProgress
-                  .filter((p) => p !== coffeeProgress)
-                  .map((p) => (
-                    <div key={p.offer.id} className="flex items-center justify-between rounded-xl border border-cream-200 bg-cream-50/50 p-3 text-xs dark:border-white/10 dark:bg-[#141210]">
-                      <span className="font-medium text-espresso-800 dark:text-cream-100">{p.offer.name}</span>
-                      <div className="flex items-center gap-3">
-                        <StampProgress count={p.count} threshold={p.threshold} size="sm" />
-                        <span className="text-espresso-500 dark:text-cream-300/70">{p.count}/{p.threshold}</span>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            )}
-
-            {/* Unlocked / Available Rewards */}
-            {activeCardEntry?.availableRewards.length > 0 && (
-              <div className="mt-4 rounded-2xl border border-leaf-600/20 bg-leaf-50 p-3.5 dark:border-leaf-700/30 dark:bg-[#142318]">
-                <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-leaf-700 dark:text-emerald-300">
-                  <Gift className="size-4" /> Ready to Redeem ({activeCardEntry.availableRewards.length})
-                </p>
-                <div className="mt-2 space-y-1">
-                  {activeCardEntry.availableRewards.map((reward) => (
-                    <div key={reward.id} className="flex items-center justify-between rounded-lg bg-white/80 px-3 py-2 text-xs dark:bg-[#1a1714]/80">
-                      <span className="font-medium text-espresso-900 dark:text-cream-50">{reward.name ?? 'Free Reward Voucher'}</span>
-                      <Badge tone="success">Ready at checkout</Badge>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Qualifying Coffee Menu Items List */}
-            {qualifyingCoffeeItems.length > 0 && (
-              <div className="mt-5 border-t border-cream-200 pt-4 dark:border-white/10">
-                <p className="text-xs font-semibold uppercase tracking-wider text-espresso-500 dark:text-cream-300/70">
-                  Coffee Items You Can Add Towards Stamps
-                </p>
-                <div className="mt-2.5 flex flex-wrap gap-2">
-                  {qualifyingCoffeeItems.slice(0, 8).map((item) => (
-                    <span
-                      key={item.id}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-cream-200 bg-white px-2.5 py-1 text-xs text-espresso-800 dark:border-white/10 dark:bg-[#141210] dark:text-cream-200"
-                    >
-                      <span>{item.name}</span>
-                      <span className="tabular font-medium text-espresso-500 dark:text-cream-300/70">{formatCurrency(item.price)}</span>
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* 5. All My Cards Overview Section */}
-      <div className="space-y-3">
-        <h2 className="display-title text-[22px]">All My Membership Cards</h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {cards.map(({ business, card, customer, availableRewards }) => (
-            <div
-              key={business?.id ?? card?.id}
-              onClick={() => setSelectedShopId(business?.id)}
-              className="group cursor-pointer rounded-2xl border border-cream-200 bg-white p-4 shadow-card transition hover:border-espresso-900/30 hover:shadow-soft dark:border-white/10 dark:bg-[#1a1714] dark:hover:border-roast-400/40"
-            >
-              <div className="flex items-center justify-between">
-                <p className="font-medium text-espresso-900 dark:text-cream-50">{business?.name}</p>
-                <Badge tone="neutral" icon={MapPin}>{business?.city}</Badge>
-              </div>
-              <p className="tabular mt-3 font-mono text-sm tracking-wider text-espresso-600 dark:text-cream-200">
-                {card?.cardNumber}
-              </p>
-              <div className="mt-3 flex items-center justify-between border-t border-cream-100 pt-2 text-xs text-espresso-500 dark:border-white/10 dark:text-cream-300/70">
-                <span>Member: {customer.name}</span>
-                {availableRewards.length > 0 ? (
-                  <Badge tone="accent">{availableRewards.length} reward</Badge>
-                ) : (
-                  <span className="text-espresso-400 dark:text-cream-300/60">Card Active</span>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+        )}
       </div>
     </div>
   )
