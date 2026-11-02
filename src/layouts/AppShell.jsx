@@ -6,6 +6,7 @@ import { Command, LogOut, Menu as MenuIcon, RotateCcw, Search, X } from 'lucide-
 import Avatar from '../components/Avatar'
 import BrandMark from '../components/BrandMark'
 import CommandPalette from '../components/CommandPalette'
+import LegalFooter from '../components/LegalFooter'
 import ThemeToggle from '../components/ThemeToggle'
 import Toaster from '../components/Toaster'
 import { resetDemoData } from '../app/store'
@@ -209,6 +210,7 @@ export default function AppShell({ navigation, header, mobileTabs, commands, sea
 
       <main key={location.pathname} className={`mx-auto max-w-7xl animate-pop-in px-4 pt-4 pb-32 sm:px-6 lg:px-8 lg:pb-12 ${minimalChrome ? 'lg:pt-3' : 'lg:pt-6'}`}>
         <Outlet />
+        <LegalFooter className="mt-10" />
       </main>
 
       {mobileTabs && (

@@ -19,6 +19,8 @@ import OfferEditorPage from './pages/app/OfferEditorPage'
 import OffersPage from './pages/app/OffersPage'
 import LoginPage from './pages/auth/LoginPage'
 import SetPasswordPage from './pages/auth/SetPasswordPage'
+import PrivacyPage from './pages/legal/PrivacyPage'
+import TermsPage from './pages/legal/TermsPage'
 
 import UserLayout from './layouts/UserLayout'
 import UserLoyaltyPage from './pages/portal/UserLoyaltyPage'
@@ -30,6 +32,8 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/set-password" element={<SetPasswordPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
 
         <Route element={<RequireAuth />}>
           {/* Platform admin portal */}

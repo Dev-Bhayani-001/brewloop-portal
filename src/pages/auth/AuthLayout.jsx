@@ -1,4 +1,5 @@
 import BrandMark from '../../components/BrandMark'
+import LegalFooter from '../../components/LegalFooter'
 import ThemeToggle from '../../components/ThemeToggle'
 import CupStory from '../../features/loyalty/CupStory'
 
@@ -23,6 +24,7 @@ export default function AuthLayout({ children }) {
           </div>
         </div>
         <div className="mx-auto my-auto w-full max-w-sm animate-fade-up py-10">{children}</div>
+        <LegalFooter />
       </section>
     </div>
   )
