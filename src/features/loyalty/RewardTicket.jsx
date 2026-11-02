@@ -9,7 +9,7 @@ export default function RewardTicket({ reward, offer, lookups }) {
 
   return (
     <div className="drop-shadow-[0_8px_16px_rgb(23_21_19/0.14)] transition duration-200 hover:-translate-y-0.5 hover:-rotate-[0.6deg]">
-      <div className="reward-ticket flex min-h-24 overflow-hidden rounded-2xl">
+      <div className="reward-ticket ticket-shine relative flex min-h-24 overflow-hidden rounded-2xl">
         <div className="ticket-stub wallet-surface flex w-[84px] shrink-0 items-center justify-center border-r-2 border-dashed border-white/25 text-[var(--tone-ink)]">
           <Gift className="size-7" strokeWidth={1.75} />
         </div>

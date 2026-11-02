@@ -46,7 +46,7 @@ export default function SetPasswordPage() {
         <ShieldCheck className="size-5" strokeWidth={1.75} />
       </span>
       <h2 className="mt-5 display-title text-[44px] leading-none">Set your password</h2>
-      <p className="mt-2 text-espresso-500">
+      <p className="mt-2 text-espresso-500 dark:text-cream-300/80">
         Hi {user?.name?.split(' ')[0]}, you signed in with a one-time password. Choose your own to continue — the
         temporary one stops working after this.
       </p>
@@ -65,7 +65,7 @@ export default function SetPasswordPage() {
           {RULES.map((rule) => {
             const ok = rule.test(password)
             return (
-              <li key={rule.label} className={`flex items-center gap-2 font-medium ${ok ? 'text-espresso-900' : 'text-espresso-500'}`}>
+              <li key={rule.label} className={`flex items-center gap-2 font-medium ${ok ? 'text-espresso-900 dark:text-cream-50' : 'text-espresso-500 dark:text-cream-300/80'}`}>
                 <span
                   className={`flex size-4 items-center justify-center rounded-full transition ${ok ? 'bg-espresso-900 text-cream-50' : 'ring-1 ring-cream-300'}`}
                 >
@@ -92,7 +92,7 @@ export default function SetPasswordPage() {
       <button
         type="button"
         onClick={() => dispatch(loggedOut())}
-        className="mt-4 text-sm text-espresso-500 hover:text-espresso-800"
+        className="mt-4 text-sm text-espresso-500 hover:text-espresso-800 dark:text-cream-300/80 dark:hover:text-cream-50"
       >
         Not you? Sign out
       </button>

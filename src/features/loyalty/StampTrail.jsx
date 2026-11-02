@@ -3,7 +3,12 @@ import { Coffee, Gift, ReceiptText } from 'lucide-react'
 // Fixed offsets so stamps look hand-pressed without shifting between renders.
 const STAMP_ROTATIONS = ['-9deg', '6deg', '-4deg', '10deg', '-7deg', '4deg']
 
-const SLOT = 'flex shrink-0 items-center justify-center rounded-full size-9 sm:size-13'
+// Stamps press in one by one, just after the page has settled.
+const STAGGER_START_MS = 220
+const STAGGER_STEP_MS = 110
+
+const SLOT = 'flex size-9 shrink-0 items-center justify-center rounded-full sm:size-13'
+const ICON = 'size-4 sm:size-6'
 
 function InkedStamp({ index, icon: Icon }) {
   return (
@@ -11,10 +16,10 @@ function InkedStamp({ index, icon: Icon }) {
       className={`${SLOT} stamp-inked bg-[var(--tone-ink)] text-espresso-950 shadow-[inset_0_0_0_2px_rgb(0_0_0/0.12)]`}
       style={{
         '--stamp-rotate': STAMP_ROTATIONS[index % STAMP_ROTATIONS.length],
-        animationDelay: `${index * 90}ms`,
+        animationDelay: `${STAGGER_START_MS + index * STAGGER_STEP_MS}ms`,
       }}
     >
-      <Icon className="size-4 sm:size-6" strokeWidth={2} />
+      <Icon className={ICON} strokeWidth={2} />
     </li>
   )
 }
@@ -70,7 +75,7 @@ export default function StampTrail({ count, threshold, rewardLabel, ruleType }) 
         title={rewardLabel}
         className={`${SLOT} stamp-reward bg-cream-50 text-espresso-950`}
       >
-        <Gift className="size-4 sm:size-6" strokeWidth={2} />
+        <Gift className={ICON} strokeWidth={2} />
       </li>
     </ol>
   )

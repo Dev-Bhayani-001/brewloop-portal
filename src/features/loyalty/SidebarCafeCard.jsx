@@ -106,7 +106,7 @@ export default function SidebarCafeCard({ onNavigate }) {
         type="button"
         disabled={!canSwitch}
         aria-expanded={canSwitch ? isOpen : undefined}
-        aria-label={canSwitch ? `${activeEntry.business?.name}: ${cafeStatusLine(activeEntry)}. Switch café` : undefined}
+        aria-label={canSwitch ? `${activeEntry.business?.name}: ${cafeStatusLine(activeEntry)}. Switch café${rewardsElsewhere > 0 ? `, ${rewardsElsewhere} rewards at other cafés` : ''}` : undefined}
         onClick={() => setIsOpen((open) => !open)}
         className="group block w-full cursor-pointer rounded-2xl p-3.5 text-left disabled:cursor-default"
       >
@@ -117,10 +117,7 @@ export default function SidebarCafeCard({ onNavigate }) {
           {canSwitch && (
             <span className="flex shrink-0 items-center gap-1.5">
               {rewardsElsewhere > 0 && !isOpen && (
-                <span className="flex items-center gap-0.5 rounded-full bg-white/10 py-0.5 pr-1.5 pl-1 text-[11px] font-semibold text-cream-50" title={`${rewardsElsewhere} waiting at your other cafés`}>
-                  <Gift className="size-3" />
-                  {rewardsElsewhere}
-                </span>
+                <span className="size-1.5 rounded-full bg-[var(--tone-ink)]" title={`${rewardsElsewhere} waiting at your other cafés`} />
               )}
               <ChevronDown className={`size-4 text-cream-200 transition-transform duration-300 group-hover:text-cream-50 ${isOpen ? 'rotate-180' : ''}`} />
             </span>

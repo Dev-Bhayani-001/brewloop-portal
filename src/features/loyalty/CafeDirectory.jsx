@@ -1,8 +1,10 @@
 import { useState } from 'react'
-import { ChevronDown, Gift, Search } from 'lucide-react'
+import { Gift, Search } from 'lucide-react'
 
 import ProgressRing from './ProgressRing'
 import { CAFE_PREVIEW_COUNT, cafeMatchesQuery, cafeShortStatus, cafeStage, primaryProgress } from './loyaltyPresentation'
+
+const COLLAPSED_COUNT = 3
 
 const FILTERS = [
   { id: 'all', label: 'All', matches: () => true },
@@ -31,7 +33,7 @@ function CafeTile({ entry, isActive, onSelect }) {
       <span className="min-w-0 flex-1">
         <span className="block truncate text-sm font-semibold text-espresso-900 dark:text-cream-50">{business?.name}</span>
         <span className="block truncate text-xs text-espresso-500 dark:text-cream-300/80">
-          {business?.city} · {cafeShortStatus(entry)}
+          {cafeShortStatus(entry)}
         </span>
       </span>
       {rewardCount > 0 && (
@@ -64,52 +66,55 @@ function FilterChip({ filter, count, isActive, onSelect }) {
 }
 
 /**
- * Every café the customer belongs to, best reason to visit first. Small wallets are a
- * plain grid; larger ones collapse to the top few, with search and filters for the rest.
+ * The customer's other cafés, best reason to visit first. Shows a single quiet row;
+ * "Show all" opens the full list, with search and filters once it's long enough to need them.
  */
 export default function CafeDirectory({ cards, activeEntry, onSelect }) {
   const [query, setQuery] = useState('')
   const [filterId, setFilterId] = useState('all')
   const [isExpanded, setIsExpanded] = useState(false)
 
-  const isLargeWallet = cards.length > CAFE_PREVIEW_COUNT
+  const canExpand = cards.length > COLLAPSED_COUNT
+  const hasControls = isExpanded && cards.length > CAFE_PREVIEW_COUNT
   const activeFilter = FILTERS.find((filter) => filter.id === filterId)
   const visibleFilters = FILTERS.filter((filter) => filter.id === filterId || cards.some(filter.matches))
   const matches = cards.filter((entry) => activeFilter.matches(entry) && cafeMatchesQuery(entry, query))
 
-  // Searching or filtering already narrows the list, so only the full list collapses.
-  const isCollapsible = isLargeWallet && filterId === 'all' && !query.trim()
-  const shown = isCollapsible && !isExpanded ? matches.slice(0, CAFE_PREVIEW_COUNT) : matches
+  const shown = canExpand && !isExpanded ? matches.slice(0, COLLAPSED_COUNT) : matches
   // A café picked from elsewhere (sidebar, stack) stays visible, without reshuffling the rest.
-  if (isCollapsible && !isExpanded && !shown.includes(activeEntry)) shown[shown.length - 1] = activeEntry
+  if (canExpand && !isExpanded && !shown.includes(activeEntry)) shown[shown.length - 1] = activeEntry
 
   const clearSearch = () => {
     setQuery('')
     setFilterId('all')
   }
 
+  const toggleExpanded = () => {
+    clearSearch()
+    setIsExpanded((expanded) => !expanded)
+  }
+
   return (
-    <section aria-label="Your cafés" className="space-y-3">
-      {isLargeWallet && (
-        <>
-          <div className="flex flex-wrap items-end justify-between gap-3 pt-2">
-            <div>
-              <h2 className="display-title text-[26px] leading-tight">Your {cards.length} cafés</h2>
-              <p className="text-[13px] text-espresso-500 dark:text-cream-300/80">Rewards first, then whichever you're closest to.</p>
-            </div>
-            <label className="flex h-10 w-full items-center gap-2 rounded-xl bg-white px-3 shadow-card focus-within:ring-2 focus-within:ring-[var(--tone-glow)] sm:w-64 dark:bg-[#1a1816] dark:shadow-none dark:ring-1 dark:ring-white/10">
-              <Search className="size-4 shrink-0 text-espresso-400 dark:text-cream-300/60" aria-hidden="true" />
-              <input
-                type="search"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search by café or city"
-                aria-label="Search your cafés"
-                className="w-full min-w-0 bg-transparent text-sm text-espresso-900 outline-none placeholder:text-espresso-400 dark:text-cream-50 dark:placeholder:text-cream-300/60"
-              />
-            </label>
-          </div>
-          <div className="-mx-1 flex gap-2 overflow-x-auto px-1 py-0.5 [scrollbar-width:none]">
+    <section aria-label="Your cafés" className="space-y-3 pt-2">
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 className="text-sm font-medium text-espresso-800 dark:text-cream-100">
+          Your cafés <span className="tabular font-normal text-espresso-500 dark:text-cream-300/80">{cards.length}</span>
+        </h2>
+        {canExpand && (
+          <button
+            type="button"
+            aria-expanded={isExpanded}
+            onClick={toggleExpanded}
+            className="text-sm font-medium text-espresso-600 underline-offset-4 hover:text-espresso-900 hover:underline dark:text-cream-200 dark:hover:text-cream-50"
+          >
+            {isExpanded ? 'Show less' : 'Show all'}
+          </button>
+        )}
+      </div>
+
+      {hasControls && (
+        <div className="flex animate-fade-up flex-wrap items-center justify-between gap-3">
+          <div className="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 py-0.5 [scrollbar-width:none]">
             {visibleFilters.map((filter) => (
               <FilterChip
                 key={filter.id}
@@ -120,7 +125,18 @@ export default function CafeDirectory({ cards, activeEntry, onSelect }) {
               />
             ))}
           </div>
-        </>
+          <label className="flex h-10 w-full items-center gap-2 rounded-xl bg-white px-3 shadow-card focus-within:ring-2 focus-within:ring-[var(--tone-glow)] sm:w-64 dark:bg-[#1a1816] dark:shadow-none dark:ring-1 dark:ring-white/10">
+            <Search className="size-4 shrink-0 text-espresso-400 dark:text-cream-300/60" aria-hidden="true" />
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search by café or city"
+              aria-label="Search your cafés"
+              className="w-full min-w-0 bg-transparent text-sm text-espresso-900 outline-none placeholder:text-espresso-400 dark:text-cream-50 dark:placeholder:text-cream-300/60"
+            />
+          </label>
+        </div>
       )}
 
       {shown.length > 0 ? (
@@ -141,18 +157,6 @@ export default function CafeDirectory({ cards, activeEntry, onSelect }) {
             Clear it
           </button>
         </div>
-      )}
-
-      {isCollapsible && (
-        <button
-          type="button"
-          aria-expanded={isExpanded}
-          onClick={() => setIsExpanded((expanded) => !expanded)}
-          className="mx-auto flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-medium text-espresso-700 ring-1 ring-espresso-900/10 transition-colors hover:text-espresso-900 dark:text-cream-200 dark:ring-white/15 dark:hover:text-cream-50"
-        >
-          {isExpanded ? 'Show fewer' : `Show all ${cards.length} cafés`}
-          <ChevronDown className={`size-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
-        </button>
       )}
     </section>
   )

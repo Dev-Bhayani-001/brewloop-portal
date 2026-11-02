@@ -46,7 +46,7 @@ function NavItem({ item, onNavigate }) {
   )
 }
 
-function SidebarContent({ navigation, header, onNavigate, onOpenPalette }) {
+function SidebarContent({ navigation, header, onNavigate, onOpenPalette, minimalChrome }) {
   const user = useSelector(selectCurrentUser)
   const dispatch = useDispatch()
 
@@ -57,7 +57,7 @@ function SidebarContent({ navigation, header, onNavigate, onOpenPalette }) {
       </div>
       {header && <div className="mt-6">{typeof header === 'function' ? header({ onNavigate }) : header}</div>}
 
-      <button
+      {!minimalChrome && <button
         type="button"
         onClick={onOpenPalette}
         className="mx-1 mt-4 flex items-center gap-2 rounded-xl bg-white/5 px-3 py-2 text-sm text-cream-300 ring-1 ring-white/10 transition hover:bg-white/10 hover:text-cream-50"
@@ -66,7 +66,7 @@ function SidebarContent({ navigation, header, onNavigate, onOpenPalette }) {
         <span className="flex-1 text-left">Search</span>
         <kbd className="kbd">{isMac ? '⌘' : 'Ctrl'}</kbd>
         <kbd className="kbd">K</kbd>
-      </button>
+      </button>}
 
       <nav className="mt-5 flex-1 space-y-5 overflow-y-auto">
         {navigation.map((section) => (
@@ -121,7 +121,7 @@ function SidebarContent({ navigation, header, onNavigate, onOpenPalette }) {
  * Responsive shell: floating dark sidebar on desktop, slide-over drawer on mobile,
  * an optional floating tab bar for the counter flow, and a global ⌘K palette.
  */
-export default function AppShell({ navigation, header, mobileTabs, commands, searchPeople, peopleLabel }) {
+export default function AppShell({ navigation, header, mobileTabs, commands, searchPeople, peopleLabel, minimalChrome = false }) {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [paletteOpen, setPaletteOpen] = useState(false)
   const location = useLocation()
@@ -140,22 +140,26 @@ export default function AppShell({ navigation, header, mobileTabs, commands, sea
   return (
     <div className="min-h-screen overflow-x-clip lg:pl-[17.5rem]">
       <aside className="fixed inset-y-3 left-3 z-30 hidden w-64 lg:block">
-        <SidebarContent navigation={navigation} header={header} onOpenPalette={() => setPaletteOpen(true)} />
+        <SidebarContent navigation={navigation} header={header} minimalChrome={minimalChrome} onOpenPalette={() => setPaletteOpen(true)} />
       </aside>
 
       {/* Mobile top bar */}
       <div className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-espresso-900/5 bg-cream-100/80 px-4 backdrop-blur-xl dark:border-white/10 dark:bg-[#121110]/80 lg:hidden">
         <BrandMark />
         <div className="flex items-center gap-2">
-          <ThemeToggle compact />
-          <button
-            type="button"
-            onClick={() => setPaletteOpen(true)}
-            className="flex size-9 items-center justify-center rounded-full text-espresso-800 hover:bg-cream-200 dark:text-cream-200 dark:hover:bg-white/10"
-            aria-label="Search"
-          >
-            <Command className="size-4" />
-          </button>
+          {!minimalChrome && (
+            <>
+              <ThemeToggle compact />
+              <button
+                type="button"
+                onClick={() => setPaletteOpen(true)}
+                className="flex size-9 items-center justify-center rounded-full text-espresso-800 hover:bg-cream-200 dark:text-cream-200 dark:hover:bg-white/10"
+                aria-label="Search"
+              >
+                <Command className="size-4" />
+              </button>
+            </>
+          )}
           <button
             type="button"
             onClick={() => setDrawerOpen(true)}
@@ -174,6 +178,7 @@ export default function AppShell({ navigation, header, mobileTabs, commands, sea
             <SidebarContent
               navigation={navigation}
               header={header}
+              minimalChrome={minimalChrome}
               onNavigate={() => setDrawerOpen(false)}
               onOpenPalette={() => {
                 setDrawerOpen(false)
@@ -193,14 +198,16 @@ export default function AppShell({ navigation, header, mobileTabs, commands, sea
       )}
 
       {/* Desktop top header with prominent Theme Switcher */}
-      <div className="hidden lg:flex items-center justify-end px-8 pt-5 pb-0">
-        <div className="flex items-center gap-2.5 rounded-2xl bg-cream-200/50 p-1.5 ring-1 ring-espresso-900/5 dark:bg-[#1a1815] dark:ring-white/10">
-          <span className="pl-2 text-[11px] font-semibold tracking-wider text-espresso-500 uppercase dark:text-cream-300/70">Theme</span>
-          <ThemeToggle />
+      {!minimalChrome && (
+        <div className="hidden lg:flex items-center justify-end px-8 pt-5 pb-0">
+          <div className="flex items-center gap-2.5 rounded-2xl bg-cream-200/50 p-1.5 ring-1 ring-espresso-900/5 dark:bg-[#1a1815] dark:ring-white/10">
+            <span className="pl-2 text-[11px] font-semibold tracking-wider text-espresso-500 uppercase dark:text-cream-300/70">Theme</span>
+            <ThemeToggle />
+          </div>
         </div>
-      </div>
+      )}
 
-      <main key={location.pathname} className="mx-auto max-w-7xl animate-pop-in px-4 pt-4 pb-32 sm:px-6 lg:px-8 lg:pt-6 lg:pb-12">
+      <main key={location.pathname} className={`mx-auto max-w-7xl animate-pop-in px-4 pt-4 pb-32 sm:px-6 lg:px-8 lg:pb-12 ${minimalChrome ? 'lg:pt-3' : 'lg:pt-6'}`}>
         <Outlet />
       </main>
 

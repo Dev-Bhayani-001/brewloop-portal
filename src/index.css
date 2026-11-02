@@ -271,6 +271,15 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
+  /* Auth brand panel: the same warm table in both themes, matching the rendered scene's edges. */
+  .auth-panel {
+    position: relative;
+    overflow: hidden;
+    container-type: size;
+    background: #d0c3ad;
+    color: #241a14;
+  }
+
   /* Lifted a step above the hero so the card reads as an object sitting on it. */
   .pass-face.wallet-surface,
   .ticket-stub.wallet-surface {
@@ -308,6 +317,7 @@
 .pass-face-back {
   transform: rotateY(180deg);
 }
+
 /* Foil highlight that follows the pointer. */
 .pass-sheen {
   opacity: var(--sheen-opacity);
@@ -322,13 +332,74 @@
 }
 
 .stamp-inked {
-  animation: stamp-down 420ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+  animation: stamp-down 460ms cubic-bezier(0.22, 0.9, 0.35, 1) both;
 }
 .stamp-next {
   animation: stamp-breathe 2.4s ease-in-out infinite;
 }
 .stamp-reward {
   animation: reward-glow 2.4s ease-in-out infinite;
+}
+
+/* Login cup: images crossfading over the scene. */
+.auth-panel .display-title {
+  color: #241a14;
+}
+.cup-status {
+  border-color: rgb(36 26 20 / 0.28);
+}
+/* Sized so the saucer always fits above the headline; the edges fade into the panel colour. */
+.cup-scene {
+  position: absolute;
+  left: 50%;
+  top: calc((100cqh - 240px) / 2 + 28px);
+  width: min(122cqw, calc((100cqh - 280px) / 0.743));
+  aspect-ratio: 1400 / 1720;
+  transform: translate(-50%, -37.2%);
+  mask-image: linear-gradient(transparent, #000 7%, #000 93%, transparent), linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+  mask-composite: intersect;
+}
+/* Each image covers just the bowl, so it's positioned over the cup in the scene. */
+.cup-layer {
+  position: absolute;
+  left: 28.143%;
+  top: 19.419%;
+  width: 43.714%;
+  max-width: none;
+  opacity: 0;
+  transition: opacity 700ms ease;
+}
+.cup-layer-on {
+  opacity: 1;
+  transition: opacity 1300ms ease;
+}
+.cup-layer-art.cup-layer-on {
+  transition: opacity 1500ms ease 800ms;
+}
+/* The right-hand form picks up the same warmth in dark mode. */
+html.dark .auth-scope .field-input:focus {
+  border-color: #c9a77a;
+  --tw-ring-color: rgb(201 167 122 / 0.18);
+}
+html.dark .auth-scope button[type="submit"] {
+  background: #efe5d4;
+  color: #241a14;
+}
+html.dark .auth-scope button[type="submit"]:hover {
+  background: #f8f1e4;
+}
+
+/* One slow glint when a reward appears, then it stays still. */
+.ticket-shine::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 35%;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.28), transparent);
+  transform: translateX(-120%);
+  animation: ticket-shine 1100ms ease-out 700ms 1 both;
 }
 
 /* Tear-off notches sit on the perforation between the stub and the body. */
@@ -357,9 +428,21 @@
     opacity: 0;
     transform: scale(1.9) rotate(var(--stamp-rotate, 0deg));
   }
+  65% {
+    opacity: 1;
+    transform: scale(0.93) rotate(var(--stamp-rotate, 0deg));
+  }
   to {
     opacity: 1;
     transform: scale(1) rotate(var(--stamp-rotate, 0deg));
+  }
+}
+@keyframes ticket-shine {
+  from {
+    transform: translateX(-120%) skewX(-18deg);
+  }
+  to {
+    transform: translateX(320%) skewX(-18deg);
   }
 }
 @keyframes stamp-breathe {
@@ -371,10 +454,10 @@
 @keyframes reward-glow {
   0%,
   100% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--tone-glow) 55%, transparent);
+    box-shadow: 0 0 12px 0 color-mix(in srgb, var(--tone-glow) 35%, transparent);
   }
   50% {
-    box-shadow: 0 0 0 9px transparent, 0 0 26px 2px color-mix(in srgb, var(--tone-glow) 60%, transparent);
+    box-shadow: 0 0 28px 4px color-mix(in srgb, var(--tone-glow) 70%, transparent);
   }
 }
 @keyframes pop-in {

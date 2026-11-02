@@ -2,7 +2,6 @@ import { useRef } from 'react'
 import { QrCode } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 
-import { formatDate } from '../../utils/format'
 
 const MAX_TILT_DEGREES = 9
 
@@ -13,6 +12,8 @@ const DEPTH_CLASSES = [
   'z-10 -translate-y-27 scale-[0.88] hover:-translate-y-29',
 ]
 const STACK_OFFSET_CLASSES = ['', 'mt-14', 'mt-27']
+// On arrival the front card lands first and the others settle in behind it.
+const ENTRANCE_DELAY_CLASSES = ['', '[animation-delay:90ms]', '[animation-delay:180ms]']
 
 const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -41,7 +42,6 @@ function PassFront({ business, customer, card }) {
         <div className="min-w-0">
           <p className="truncate text-[15px] font-medium">{customer?.name}</p>
           <p className="tabular mt-0.5 font-mono text-[13px] tracking-[0.12em] text-cream-200">{card?.cardNumber}</p>
-          <p className="mt-1 text-[11px] text-cream-300/80">Member since {formatDate(customer?.createdAt)}</p>
         </div>
         <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-cream-50 ring-1 ring-white/15 backdrop-blur-sm transition group-hover/pass:bg-white/20">
           <QrCode className="size-5" />
@@ -95,7 +95,7 @@ function Pass({ entry, depth, isFlipped, onActivate }) {
 
   return (
     <div
-      className={`${entry.tone} absolute inset-0 origin-top animate-pop-in transition-[translate,scale,opacity] duration-500 ease-[cubic-bezier(0.2,0.9,0.3,1)] ${DEPTH_CLASSES[depth]}`}
+      className={`${entry.tone} absolute inset-0 origin-top animate-pop-in transition-[translate,scale,opacity] [animation-fill-mode:both] duration-500 ease-[cubic-bezier(0.2,0.9,0.3,1)] ${DEPTH_CLASSES[depth]} ${ENTRANCE_DELAY_CLASSES[depth]}`}
     >
       <button
         type="button"

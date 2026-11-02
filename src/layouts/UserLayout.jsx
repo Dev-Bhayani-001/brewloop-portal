@@ -11,7 +11,6 @@ export default function UserLayout() {
 
   const navigation = [
     {
-      title: 'Member Access',
       items: [
         { to: '/portal/loyalty', label: 'My Loyalty', icon: CreditCard, badge: rewardCount, badgeLabel: 'rewards ready' },
         { to: '/portal/bills', label: 'My Bills', icon: ReceiptText },
@@ -35,6 +34,7 @@ export default function UserLayout() {
       header={({ onNavigate }) => <SidebarCafeCard onNavigate={onNavigate} />}
       mobileTabs={mobileTabs}
       commands={commands}
+      minimalChrome
     />
   )
 }
