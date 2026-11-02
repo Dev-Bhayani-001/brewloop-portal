@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Navigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { ArrowRight, Eye, EyeOff, KeyRound } from 'lucide-react'
 
 import AuthLayout from './AuthLayout'
@@ -75,6 +75,18 @@ export default function LoginPage() {
         <Button type="submit" size="lg" className="w-full" loading={status === 'loading'} iconRight={ArrowRight}>
           Sign in
         </Button>
+
+        <p className="text-center text-xs text-espresso-500 dark:text-cream-300/80">
+          By signing in you agree to our{' '}
+          <Link to="/terms" className="underline underline-offset-2 hover:text-espresso-900 dark:hover:text-cream-50">
+            Terms
+          </Link>{' '}
+          and{' '}
+          <Link to="/privacy" className="underline underline-offset-2 hover:text-espresso-900 dark:hover:text-cream-50">
+            Privacy Policy
+          </Link>
+          .
+        </p>
       </form>
 
       <p className="mt-5 text-sm text-espresso-500 dark:text-cream-300/80">
