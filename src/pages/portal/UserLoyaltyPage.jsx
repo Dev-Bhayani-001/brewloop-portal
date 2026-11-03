@@ -4,6 +4,7 @@ import { ChevronDown, HelpCircle, QrCode, RotateCcw } from 'lucide-react'
 
 import EmptyState from '../../components/EmptyState'
 import CafeDirectory from '../../features/loyalty/CafeDirectory'
+import CafeCardModal from '../../features/loyalty/CafeCardModal'
 import ProgressRing from '../../features/loyalty/ProgressRing'
 import RewardTicket from '../../features/loyalty/RewardTicket'
 import StampTrail from '../../features/loyalty/StampTrail'
@@ -180,6 +181,8 @@ export default function UserLoyaltyPage() {
   // Tracked per café so switching from the sidebar also returns to the card front.
   const [flippedCafeId, setFlippedCafeId] = useState(null)
   const heroRef = useRef(null)
+  // Modal state: which café entry to show in the popup (null = closed).
+  const [modalEntry, setModalEntry] = useState(null)
 
   if (!activeEntry) {
     return (
@@ -193,10 +196,20 @@ export default function UserLoyaltyPage() {
 
   const activeCafeId = activeEntry.business?.id
   const isFlipped = flippedCafeId === activeCafeId
-  const handleSelect = (businessId) => {
+
+  // When a café tile is clicked, open the card in a popup instead of scrolling.
+  const handleTileSelect = (businessId) => {
     dispatch(activeCafeSelected(businessId))
     setFlippedCafeId(null)
-    // A tile far down a long list would otherwise change a hero that's off screen.
+    // Find the entry for the selected café and show it in the modal.
+    const selected = cards.find((entry) => entry.business?.id === businessId)
+    if (selected) setModalEntry(selected)
+  }
+
+  // Wallet stack cards still switch in the hero (no modal needed there).
+  const handleStackSelect = (businessId) => {
+    dispatch(activeCafeSelected(businessId))
+    setFlippedCafeId(null)
     revealElement(heroRef.current)
   }
 
@@ -208,14 +221,20 @@ export default function UserLoyaltyPage() {
         activeEntry={activeEntry}
         isFlipped={isFlipped}
         onFlip={() => setFlippedCafeId(isFlipped ? null : activeCafeId)}
-        onSelect={handleSelect}
+        onSelect={handleStackSelect}
       />
 
       <RewardTickets entry={activeEntry} />
 
-      {cards.length > 1 && <CafeDirectory cards={cards} activeEntry={activeEntry} onSelect={handleSelect} />}
+      {cards.length > 1 && <CafeDirectory cards={cards} activeEntry={activeEntry} onSelect={handleTileSelect} />}
 
       <HowToEarn entry={activeEntry} />
+
+      <CafeCardModal
+        entry={modalEntry}
+        open={modalEntry !== null}
+        onClose={() => setModalEntry(null)}
+      />
     </div>
   )
 }
