@@ -162,19 +162,60 @@ const MENU_TEMPLATE = [
   {
     name: 'Coffee',
     items: [
-      ['Espresso', 140],
-      ['Cappuccino', 190],
-      ['Flat White', 210],
-      ['Cold Brew', 230],
+      ['Espresso', 140, { calories: 5, description: 'Rich, intense double shot with golden crema', healthy: false, dietary: ['Sugar-Free'] }],
+      ['Cappuccino', 190, { calories: 120, description: 'Balanced espresso with velvety steamed milk foam', healthy: false }],
+      ['Flat White', 210, { calories: 135, description: 'Smooth microfoam poured over double espresso ristretto', healthy: false }],
+      ['Cold Brew', 230, { calories: 5, description: 'Steeped for 16 hours, naturally sweet and smooth', healthy: true, dietary: ['Sugar-Free'] }],
     ],
   },
-  { name: 'Tea', items: [['Masala Chai', 90], ['Matcha Latte', 240]] },
-  { name: 'Shakes', items: [['Cold Coffee', 200], ['Hazelnut Frappe', 260]] },
-  { name: 'Bakes', items: [['Butter Croissant', 150], ['Banana Bread', 130]] },
-  { name: 'Sandwiches', items: [['Pesto Paneer Melt', 280], ['Egg Mayo', 220]] },
-  { name: 'Bowls', items: [['Acai Bowl', 320]] },
-  { name: 'Desserts', items: [['Tiramisu Cup', 240], ['Brownie', 160]] },
-  { name: 'Beverages', items: [['Fresh Lime Soda', 110], ['Mineral Water', 40]] },
+  {
+    name: 'Tea',
+    items: [
+      ['Masala Chai', 90, { calories: 95, description: 'Spiced Indian black tea brewed with fresh ginger and cardamom' }],
+      ['Matcha Latte', 240, { calories: 140, description: 'Ceremonial Japanese matcha whisked with oat milk', healthy: true, dietary: ['Vegan'] }],
+    ],
+  },
+  {
+    name: 'Shakes',
+    items: [
+      ['Cold Coffee', 200, { calories: 210, description: 'Classic blended iced coffee with milk and vanilla syrup' }],
+      ['Hazelnut Frappe', 260, { calories: 290, description: 'Decadent blended espresso with roasted hazelnut drizzle' }],
+    ],
+  },
+  {
+    name: 'Bakes',
+    items: [
+      ['Butter Croissant', 150, { calories: 260, description: 'Flaky, buttery French pastry baked fresh daily' }],
+      ['Banana Bread', 130, { calories: 195, description: 'Moist walnut banana loaf slice with cinnamon' }],
+    ],
+  },
+  {
+    name: 'Sandwiches',
+    items: [
+      ['Pesto Paneer Melt', 280, { calories: 340, description: 'Grilled multigrain panini with basil pesto and fresh cottage cheese' }],
+      ['Egg Mayo', 220, { calories: 280, description: 'Creamy egg salad with cracked black pepper and chives' }],
+    ],
+  },
+  {
+    name: 'Bowls',
+    items: [
+      ['Acai Bowl', 320, { calories: 240, description: 'Organic acai topped with fresh berries, chia seeds & house granola', healthy: true, dietary: ['Vegan', 'High Protein'] }],
+    ],
+  },
+  {
+    name: 'Desserts',
+    items: [
+      ['Tiramisu Cup', 240, { calories: 310, description: 'Espresso-soaked ladyfingers with mascarpone cream' }],
+      ['Brownie', 160, { calories: 270, description: 'Warm fudge dark chocolate brownie' }],
+    ],
+  },
+  {
+    name: 'Beverages',
+    items: [
+      ['Fresh Lime Soda', 110, { calories: 45, description: 'Zesty fresh lime with sparkling soda, sweet or salted', healthy: true }],
+      ['Mineral Water', 40, { calories: 0, description: 'Chilled natural spring water 500ml', healthy: true, dietary: ['Sugar-Free'] }],
+    ],
+  },
 ]
 
 function buildMenu(businessId, prefix) {
@@ -183,7 +224,7 @@ function buildMenu(businessId, prefix) {
   MENU_TEMPLATE.forEach((category, categoryIndex) => {
     const categoryId = `${prefix}_cat_${categoryIndex}`
     categories.push({ id: categoryId, businessId, name: category.name, active: true })
-    category.items.forEach(([name, price], itemIndex) => {
+    category.items.forEach(([name, price, meta = {}], itemIndex) => {
       items.push({
         id: `${prefix}_item_${categoryIndex}_${itemIndex}`,
         businessId,
@@ -191,6 +232,10 @@ function buildMenu(businessId, prefix) {
         name,
         price,
         active: !(name === 'Acai Bowl' && prefix === 'kc'),
+        description: meta.description ?? null,
+        calories: meta.calories ?? null,
+        healthy: meta.healthy ?? false,
+        dietary: meta.dietary ?? [],
       })
     })
   })

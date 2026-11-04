@@ -26,13 +26,16 @@ const menuSlice = createSlice({
         return { payload: { active: true, ...item, id: item.id ?? `item_${nanoid(8)}` } }
       },
     },
-    // Items are never deleted — deactivating keeps old bills & analytics correct.
+    // Items can be toggled on/off or deleted from the menu.
     itemToggled(state, action) {
       const item = state.items.find((entry) => entry.id === action.payload)
       if (item) item.active = !item.active
     },
+    itemDeleted(state, action) {
+      state.items = state.items.filter((entry) => entry.id !== action.payload)
+    },
   },
 })
 
-export const { categoryAdded, categoryUpdated, itemSaved, itemToggled } = menuSlice.actions
+export const { categoryAdded, categoryUpdated, itemSaved, itemToggled, itemDeleted } = menuSlice.actions
 export default menuSlice.reducer

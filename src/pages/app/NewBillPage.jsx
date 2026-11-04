@@ -129,7 +129,12 @@ function MenuGrid({ onAdd, lines }) {
               <Icon className="size-4 text-espresso-400 dark:text-cream-300/70" strokeWidth={1.75} aria-hidden="true" />
             )}
             <span className="mt-3 pr-6 text-sm leading-snug font-medium text-espresso-900 dark:text-cream-50">{item.name}</span>
-            <span className="tabular mt-0.5 text-[13px] text-espresso-500 dark:text-cream-300/70">{formatCurrency(item.price)}</span>
+            <div className="mt-0.5 flex items-center justify-between gap-1 text-[13px] text-espresso-500 dark:text-cream-300/70">
+              <span className="tabular">{formatCurrency(item.price)}</span>
+              {item.calories != null && (
+                <span className="text-[11px] opacity-80">{item.calories} kcal</span>
+              )}
+            </div>
             {quantity && (
               <span className="absolute top-3 right-3 flex size-6 animate-pop-in items-center justify-center rounded-full bg-espresso-900 text-[11px] font-medium text-cream-50 dark:bg-roast-500">
                 {quantity}

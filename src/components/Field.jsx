@@ -72,3 +72,19 @@ export function SelectField({ label, hint, error, className, options, ...props }
     </FieldShell>
   )
 }
+
+export function TextAreaField({ label, hint, error, className, rows = 3, ...props }) {
+  const id = useId()
+  return (
+    <FieldShell id={id} label={label} hint={hint} error={error} className={className}>
+      <textarea
+        id={id}
+        rows={rows}
+        className="field-input h-auto min-h-[76px] resize-none py-2.5"
+        aria-invalid={Boolean(error)}
+        aria-describedby={error ? `${id}-error` : undefined}
+        {...props}
+      />
+    </FieldShell>
+  )
+}
