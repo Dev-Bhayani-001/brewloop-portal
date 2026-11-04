@@ -98,3 +98,4 @@ Before finishing any task:
 - [ ] Do all clickable buttons and interactive items have proper `cursor-pointer`?
 - [ ] Does the UI look polished in both Light and Dark mode?
 - [ ] Did I run `npx vite build` and confirm that the build passes with 0 errors?
+

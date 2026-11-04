@@ -8,3 +8,4 @@ Please read and strictly follow [FRONTEND_GUIDELINES.md](./FRONTEND_GUIDELINES.m
 3. **Third-party packages (MANDATORY):** NEVER install a third-party npm package without asking the user first. Always check existing dependencies and native web APIs first.
 4. **Interactive Polish:** Always ensure clickable buttons and elements have `cursor-pointer` and proper hover/focus states.
 5. **Always Verify:** Always run `npx vite build` to ensure zero compilation or syntax errors before completing your turn.
+
