@@ -5,6 +5,7 @@
 import { createSelector } from '@reduxjs/toolkit'
 
 import { getPlan, getPlanFeatures } from '../utils/planFeatures'
+import { rankCafes, toneForIndex } from '../features/loyalty/loyaltyPresentation'
 import { isOfferLive, progressKey } from '../features/offers/offersEngine'
 
 export const selectSession = (state) => state.auth.session
@@ -46,6 +47,137 @@ export const selectLookups = createSelector([selectCategories, selectItems], (ca
 
 export const selectCardsByCustomer = createSelector([selectCards], (cards) =>
   Object.fromEntries(cards.map((card) => [card.customerId, card])),
+)
+
+export const selectCurrentCustomer = createSelector(
+  [selectCurrentUser, selectCustomers, selectSession],
+  (user, customers, session) => {
+    if (!user && !session) return null
+    const customerId = user?.customerId ?? session?.customerId
+    if (customerId) {
+      const match = customers.find((c) => c.id === customerId)
+      if (match) return match
+    }
+    const cleanPhone = (p) => p?.replace(/\D/g, '').slice(-10)
+    return (
+      customers.find(
+        (c) =>
+          (user?.email && c.email?.toLowerCase() === user.email.toLowerCase()) ||
+          (user?.phone && cleanPhone(c.phone) === cleanPhone(user.phone)),
+      ) ?? null
+    )
+  },
+)
+
+/** All customer memberships for the signed-in user across all coffee shops */
+export const selectCustomerMemberships = createSelector(
+  [selectCurrentUser, selectSession, (state) => state.customers.customers, (state) => state.admin.businesses],
+  (user, session, allCustomers, businesses) => {
+    if (!user && !session) return []
+    const cleanPhone = (p) => p?.replace(/\D/g, '').slice(-10)
+    const userPhone = cleanPhone(user?.phone)
+    const userEmail = user?.email?.toLowerCase()
+
+    return allCustomers
+      .filter(
+        (c) =>
+          c.id === user?.customerId ||
+          (userEmail && c.email?.toLowerCase() === userEmail) ||
+          (userPhone && cleanPhone(c.phone) === userPhone),
+      )
+      .map((customer) => ({
+        customer,
+        business: businesses.find((b) => b.id === customer.businessId) ?? null,
+      }))
+  },
+)
+
+/** All loyalty cards & per-café progress for the signed-in user across all coffee shops */
+export const selectCustomerCards = createSelector(
+  [
+    selectCustomerMemberships,
+    (state) => state.customers.cards,
+    (state) => state.offers.offers,
+    (state) => state.loyalty.progress,
+    (state) => state.loyalty.rewards,
+    (state) => state.menu.categories,
+    (state) => state.menu.items,
+    (state) => state.billing.bills,
+  ],
+  (memberships, allCards, allOffers, progress, allRewards, allCategories, allItems, allBills) => {
+    const lastVisitByCustomer = {}
+    for (const bill of allBills) {
+      if (bill.status !== 'active') continue
+      if (bill.createdAt > (lastVisitByCustomer[bill.customerId] ?? '')) lastVisitByCustomer[bill.customerId] = bill.createdAt
+    }
+
+    return memberships.map(({ customer, business }) => {
+      const card = allCards.find((c) => c.customerId === customer.id)
+      const offers = allOffers.filter((o) => o.businessId === business?.id && isOfferLive(o))
+      const offerProgress = offers.map((offer) => {
+        const row = progress[progressKey(customer.id, offer.id)]
+        return {
+          offer,
+          count: row?.count ?? 0,
+          threshold: row?.thresholdSnapshot ?? offer.threshold,
+        }
+      })
+      const customerRewards = allRewards
+        .filter((r) => r.customerId === customer.id)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      // A customer's cards span cafés, so menu data can't come from the session-scoped selectors.
+      const items = allItems.filter((item) => item.businessId === business?.id)
+      const categories = allCategories.filter((category) => category.businessId === business?.id)
+
+      return {
+        customer,
+        business,
+        card,
+        lastVisitAt: lastVisitByCustomer[customer.id] ?? null,
+        items,
+        offers: allOffers.filter((o) => o.businessId === business?.id),
+        lookups: {
+          categoriesById: Object.fromEntries(categories.map((category) => [category.id, category])),
+          itemsById: Object.fromEntries(items.map((item) => [item.id, item])),
+        },
+        offerProgress,
+        availableRewards: customerRewards.filter((r) => r.status === 'available'),
+        rewardHistory: customerRewards,
+      }
+    })
+  },
+)
+
+/**
+ * The customer's wallet, best café first. Tone comes from membership order so a café
+ * keeps its colour when the ranking changes. With nothing selected, opens on the top card.
+ */
+export const selectWallet = createSelector(
+  [selectCustomerCards, (state) => state.ui.activeCafeId],
+  (cards, activeCafeId) => {
+    const ranked = rankCafes(cards.map((entry, index) => ({ ...entry, tone: toneForIndex(index) })))
+    return {
+      cards: ranked,
+      activeEntry: ranked.find((entry) => entry.business?.id === activeCafeId) ?? ranked[0] ?? null,
+    }
+  },
+)
+
+/** All bills for the signed-in user across all coffee shops with business metadata */
+export const selectAllCustomerBills = createSelector(
+  [selectCustomerMemberships, (state) => state.billing.bills, (state) => state.admin.businesses],
+  (memberships, allBills, businesses) => {
+    const customerIds = new Set(memberships.map((m) => m.customer.id))
+    const bizById = Object.fromEntries(businesses.map((b) => [b.id, b]))
+
+    return allBills
+      .filter((bill) => customerIds.has(bill.customerId))
+      .map((bill) => ({
+        ...bill,
+        business: bizById[bill.businessId] ?? null,
+      }))
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  },
 )
 
 /** Visit count, spend and last visit per customer, from active bills. */

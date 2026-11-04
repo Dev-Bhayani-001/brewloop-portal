@@ -54,15 +54,15 @@ export default function OffersPage() {
               <article key={offer.id} className={`card flex flex-col p-5 ${ended ? 'opacity-70' : ''}`}>
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-3">
-                    <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-roast-50 text-roast-600">
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-roast-50 text-roast-600 dark:bg-roast-500/20 dark:text-roast-300">
                       <Sparkles className="size-5" />
                     </span>
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <h2 className="display-title text-[22px] leading-tight">{offer.name}</h2>
+                        <h2 className="display-title text-[22px] leading-tight text-espresso-900 dark:text-cream-50">{offer.name}</h2>
                         <Badge tone={status.tone}>{status.label}</Badge>
                       </div>
-                      <p className="mt-0.5 text-sm text-espresso-600">{describeRule(offer, lookups)}</p>
+                      <p className="mt-0.5 text-sm text-espresso-600 dark:text-cream-300/80">{describeRule(offer, lookups)}</p>
                     </div>
                   </div>
                   {!ended && (
@@ -74,27 +74,27 @@ export default function OffersPage() {
                   )}
                 </div>
 
-                <dl className="mt-5 grid grid-cols-3 gap-3 rounded-xl bg-cream-50 p-3 text-center">
+                <dl className="mt-5 grid grid-cols-3 gap-3 rounded-xl bg-cream-50 p-3 text-center dark:bg-[#121110] dark:ring-1 dark:ring-white/10">
                   <div>
-                    <dt className="text-xs text-espresso-500">Earned</dt>
-                    <dd className="tabular text-lg font-semibold">{stats.earned}</dd>
+                    <dt className="text-xs text-espresso-500 dark:text-cream-300/70">Earned</dt>
+                    <dd className="tabular text-lg font-semibold text-espresso-900 dark:text-cream-50">{stats.earned}</dd>
                   </div>
                   <div>
-                    <dt className="text-xs text-espresso-500">Redeemed</dt>
-                    <dd className="tabular text-lg font-semibold">
+                    <dt className="text-xs text-espresso-500 dark:text-cream-300/70">Redeemed</dt>
+                    <dd className="tabular text-lg font-semibold text-espresso-900 dark:text-cream-50">
                       {stats.redeemed}
-                      <span className="ml-1 text-xs font-normal text-espresso-500">
+                      <span className="ml-1 text-xs font-normal text-espresso-500 dark:text-cream-300/60">
                         {stats.earned ? formatPercent(stats.redeemed / stats.earned) : ''}
                       </span>
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-xs text-espresso-500">Waiting</dt>
-                    <dd className="tabular text-lg font-semibold">{stats.waiting}</dd>
+                    <dt className="text-xs text-espresso-500 dark:text-cream-300/70">Waiting</dt>
+                    <dd className="tabular text-lg font-semibold text-espresso-900 dark:text-cream-50">{stats.waiting}</dd>
                   </div>
                 </dl>
 
-                <div className="mt-4 flex items-center justify-between text-[13px] text-espresso-500">
+                <div className="mt-4 flex items-center justify-between text-[13px] text-espresso-500 dark:text-cream-300/70">
                   <span className="flex items-center gap-1.5">
                     <CalendarRange className="size-3.5" />
                     {offer.validFrom ? formatDate(offer.validFrom) : 'Any time'} →{' '}
@@ -102,7 +102,7 @@ export default function OffersPage() {
                   </span>
                   <Link
                     to={`/offers/${offer.id}`}
-                    className="flex items-center gap-0.5 font-medium text-roast-600 hover:text-roast-700"
+                    className="flex items-center gap-0.5 font-medium text-roast-600 hover:text-roast-700 dark:text-roast-400 dark:hover:text-roast-300"
                   >
                     Edit <ChevronRight className="size-4" />
                   </Link>

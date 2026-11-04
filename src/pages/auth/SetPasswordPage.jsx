@@ -8,13 +8,8 @@ import Button from '../../components/Button'
 import { TextField } from '../../components/Field'
 import { selectCurrentUser, selectSession } from '../../app/selectors'
 import { loggedOut, setOwnPassword } from '../../features/auth/authSlice'
+import { PASSWORD_RULES as RULES } from '../../features/auth/passwordRules'
 import { homeFor } from '../../utils/permissions'
-
-const RULES = [
-  { label: 'At least 8 characters', test: (value) => value.length >= 8 },
-  { label: 'One number', test: (value) => /\d/.test(value) },
-  { label: 'One letter', test: (value) => /[a-z]/i.test(value) },
-]
 
 /** Step 4 of onboarding: the member must replace their temporary password before anything else. */
 export default function SetPasswordPage() {
@@ -46,7 +41,7 @@ export default function SetPasswordPage() {
         <ShieldCheck className="size-5" strokeWidth={1.75} />
       </span>
       <h2 className="mt-5 display-title text-[44px] leading-none">Set your password</h2>
-      <p className="mt-2 text-espresso-500">
+      <p className="mt-2 text-espresso-500 dark:text-cream-300/80">
         Hi {user?.name?.split(' ')[0]}, you signed in with a one-time password. Choose your own to continue — the
         temporary one stops working after this.
       </p>
@@ -65,7 +60,7 @@ export default function SetPasswordPage() {
           {RULES.map((rule) => {
             const ok = rule.test(password)
             return (
-              <li key={rule.label} className={`flex items-center gap-2 font-medium ${ok ? 'text-espresso-900' : 'text-espresso-500'}`}>
+              <li key={rule.label} className={`flex items-center gap-2 font-medium ${ok ? 'text-espresso-900 dark:text-cream-50' : 'text-espresso-500 dark:text-cream-300/80'}`}>
                 <span
                   className={`flex size-4 items-center justify-center rounded-full transition ${ok ? 'bg-espresso-900 text-cream-50' : 'ring-1 ring-cream-300'}`}
                 >
@@ -92,7 +87,7 @@ export default function SetPasswordPage() {
       <button
         type="button"
         onClick={() => dispatch(loggedOut())}
-        className="mt-4 text-sm text-espresso-500 hover:text-espresso-800"
+        className="mt-4 text-sm text-espresso-500 hover:text-espresso-800 dark:text-cream-300/80 dark:hover:text-cream-50"
       >
         Not you? Sign out
       </button>

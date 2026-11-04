@@ -2,7 +2,7 @@ import { createSlice, nanoid } from '@reduxjs/toolkit'
 
 const uiSlice = createSlice({
   name: 'ui',
-  initialState: { toasts: [] },
+  initialState: { toasts: [], activeCafeId: null },
   reducers: {
     toastShown: {
       reducer(state, action) {
@@ -16,8 +16,12 @@ const uiSlice = createSlice({
     toastDismissed(state, action) {
       state.toasts = state.toasts.filter((toast) => toast.id !== action.payload)
     },
+    /** The café a customer is viewing, shared by the sidebar card and the wallet. */
+    activeCafeSelected(state, action) {
+      state.activeCafeId = action.payload
+    },
   },
 })
 
-export const { toastShown, toastDismissed } = uiSlice.actions
+export const { toastShown, toastDismissed, activeCafeSelected } = uiSlice.actions
 export default uiSlice.reducer

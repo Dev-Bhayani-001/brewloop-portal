@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Navigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { ArrowRight, Eye, EyeOff, KeyRound } from 'lucide-react'
 
 import AuthLayout from './AuthLayout'
@@ -35,7 +35,7 @@ export default function LoginPage() {
   return (
     <AuthLayout>
       <h2 className="display-title text-[44px] leading-none">Welcome back</h2>
-      <p className="mt-3 text-espresso-500">Sign in with the phone number or email your Brewloop admin set up for you.</p>
+      <p className="mt-3 text-espresso-500 dark:text-cream-300/80">Sign in with the phone number or email your Brewloop admin set up for you.</p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
         <TextField
@@ -59,7 +59,7 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={() => setShowPassword((value) => !value)}
-            className="absolute right-2 bottom-1.5 rounded-full p-2 text-espresso-400 hover:bg-cream-100 hover:text-espresso-700"
+            className="absolute right-2 bottom-1.5 rounded-full p-2 text-espresso-400 hover:bg-cream-100 hover:text-espresso-700 dark:text-cream-300/70 dark:hover:text-cream-50"
             aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
             {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -67,7 +67,7 @@ export default function LoginPage() {
         </div>
 
         {error && (
-          <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200">
+          <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200 dark:bg-red-500/15 dark:text-red-300 dark:ring-red-500/30">
             {error}
           </p>
         )}
@@ -75,26 +75,38 @@ export default function LoginPage() {
         <Button type="submit" size="lg" className="w-full" loading={status === 'loading'} iconRight={ArrowRight}>
           Sign in
         </Button>
+
+        <p className="text-center text-xs text-espresso-500 dark:text-cream-300/80">
+          By signing in you agree to our{' '}
+          <Link to="/terms" className="underline underline-offset-2 hover:text-espresso-900 dark:hover:text-cream-50">
+            Terms
+          </Link>{' '}
+          and{' '}
+          <Link to="/privacy" className="underline underline-offset-2 hover:text-espresso-900 dark:hover:text-cream-50">
+            Privacy Policy
+          </Link>
+          .
+        </p>
       </form>
 
-      <p className="mt-5 text-sm text-espresso-500">
+      <p className="mt-5 text-sm text-espresso-500 dark:text-cream-300/80">
         Forgot your password? Ask your Brewloop admin to reset it — you'll get a new one-time password.
       </p>
 
-      <div className="mt-10 rounded-2xl border border-dashed border-cream-300 p-3">
+      <div className="mt-8 border-t border-cream-200 pt-5 dark:border-white/10">
         <p className="eyebrow flex items-center gap-1.5">
-          <KeyRound className="size-3" /> Demo accounts
+          <KeyRound className="size-3" /> Try a demo account
         </p>
-        <div className="mt-3 grid gap-1">
+        <div className="mt-3 flex flex-wrap gap-1.5">
           {DEMO_ACCOUNTS.map((account) => (
             <button
               key={account.identifier}
               type="button"
+              title={account.identifier}
               onClick={() => fillDemo(account)}
-              className="flex items-center justify-between rounded-xl px-3 py-2 text-left text-sm transition hover:bg-white hover:shadow-card"
+              className="rounded-full px-3 py-1.5 text-[13px] font-medium text-espresso-700 ring-1 ring-espresso-900/10 transition-colors hover:text-espresso-900 hover:ring-espresso-900/30 dark:text-cream-200 dark:ring-white/15 dark:hover:text-cream-50 dark:hover:ring-white/35"
             >
-              <span className="font-medium text-espresso-800">{account.label}</span>
-              <span className="truncate pl-3 text-xs text-espresso-500">{account.identifier}</span>
+              {account.label}
             </button>
           ))}
         </div>

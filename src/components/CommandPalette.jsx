@@ -61,9 +61,9 @@ export default function CommandPalette({ open, onClose, commands, searchPeople, 
       onClose={onClose}
       onClick={(event) => event.target === dialogRef.current && onClose()}
       aria-label="Command palette"
-      className="mx-auto mt-[12vh] w-[calc(100%-2rem)] max-w-xl overflow-hidden rounded-3xl bg-white p-0 shadow-lifted backdrop:bg-espresso-950/40 backdrop:backdrop-blur-sm open:animate-pop-in"
+      className="mx-auto mt-[12vh] w-[calc(100%-2rem)] max-w-xl overflow-hidden rounded-3xl bg-white p-0 shadow-lifted backdrop:bg-espresso-950/40 backdrop:backdrop-blur-sm open:animate-pop-in dark:border dark:border-white/10 dark:bg-[#1a1714] dark:text-cream-50 dark:shadow-none"
     >
-      <div className="flex items-center gap-3 border-b border-cream-200 px-5">
+      <div className="flex items-center gap-3 border-b border-cream-200 px-5 dark:border-white/10">
         <Search className="size-5 text-espresso-400" />
         <input
           ref={inputRef}
@@ -74,7 +74,7 @@ export default function CommandPalette({ open, onClose, commands, searchPeople, 
           }}
           onKeyDown={handleKeyDown}
           placeholder="Search customers, pages, actions…"
-          className="h-14 flex-1 bg-transparent text-[16px] outline-none placeholder:text-espresso-400"
+          className="h-14 flex-1 bg-transparent text-[16px] outline-none placeholder:text-espresso-400 dark:text-cream-50"
           aria-label="Search"
         />
         <kbd className="kbd text-espresso-500">esc</kbd>
@@ -94,13 +94,13 @@ export default function CommandPalette({ open, onClose, commands, searchPeople, 
                 onMouseEnter={() => setActiveIndex(index)}
                 onClick={() => run(row)}
                 className={`flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition ${
-                  active ? 'bg-cream-100' : ''
+                  active ? 'bg-cream-100 dark:bg-white/10' : ''
                 }`}
               >
                 {row.person ? (
                   <Avatar name={row.label} size="sm" />
                 ) : (
-                  <span className="flex size-8 items-center justify-center rounded-full bg-cream-100">
+                  <span className="flex size-8 items-center justify-center rounded-full bg-cream-100 dark:bg-white/10">
                     {row.icon && <row.icon className="size-4" />}
                   </span>
                 )}

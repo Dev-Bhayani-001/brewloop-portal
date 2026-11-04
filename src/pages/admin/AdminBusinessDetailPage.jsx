@@ -179,19 +179,19 @@ export default function AdminBusinessDetailPage() {
                 onClick={() => setPendingPlan(id)}
                 className={`flex w-full items-center justify-between rounded-xl border p-3 text-left transition ${
                   id === business.plan
-                    ? 'border-roast-400 bg-roast-50'
-                    : 'border-cream-300 hover:border-espresso-400/40 hover:bg-cream-50'
+                    ? 'border-roast-400 bg-roast-50 dark:bg-roast-500/15'
+                    : 'border-cream-300 hover:border-espresso-400/40 hover:bg-cream-50 dark:border-white/15 dark:hover:border-white/30'
                 }`}
               >
                 <span>
                   <span className="block text-sm font-semibold">{PLANS[id].label}</span>
-                  <span className="block text-[13px] text-espresso-500">{PLANS[id].tagline}</span>
+                  <span className="block text-[13px] text-espresso-500 dark:text-cream-300/80">{PLANS[id].tagline}</span>
                 </span>
                 {id === business.plan && <Badge tone="accent">Current</Badge>}
               </button>
             ))}
           </div>
-          <p className="mt-3 text-[13px] text-espresso-500">Changes apply immediately. Downgrades hide data, never delete it.</p>
+          <p className="mt-3 text-[13px] text-espresso-500 dark:text-cream-300/80">Changes apply immediately. Downgrades hide data, never delete it.</p>
         </section>
       </div>
 

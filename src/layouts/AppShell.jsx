@@ -6,10 +6,13 @@ import { Command, LogOut, Menu as MenuIcon, RotateCcw, Search, X } from 'lucide-
 import Avatar from '../components/Avatar'
 import BrandMark from '../components/BrandMark'
 import CommandPalette from '../components/CommandPalette'
+import LegalFooter from '../components/LegalFooter'
+import ThemeToggle from '../components/ThemeToggle'
 import Toaster from '../components/Toaster'
 import { resetDemoData } from '../app/store'
 import { selectCurrentUser } from '../app/selectors'
 import { loggedOut } from '../features/auth/authSlice'
+import EditProfileModal from '../features/auth/EditProfileModal'
 import { ROLE_LABELS } from '../utils/permissions'
 
 const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform)
@@ -28,8 +31,14 @@ function NavItem({ item, onNavigate }) {
         }`
       }
     >
-      <item.icon className="size-[18px]" strokeWidth={1.75} />
+      <item.icon className="size-[18px] transition-transform duration-200 group-hover:scale-110" strokeWidth={1.75} />
       <span className="flex-1">{item.label}</span>
+      {item.badge > 0 && (
+        <span className="tabular flex h-5 min-w-5 items-center justify-center rounded-full bg-roast-400 px-1.5 text-[11px] font-semibold text-espresso-950">
+          {item.badge}
+          {item.badgeLabel && <span className="sr-only"> {item.badgeLabel}</span>}
+        </span>
+      )}
       {item.locked && (
         <span className="rounded-full px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-cream-300 uppercase ring-1 ring-white/15">
           Gold
@@ -39,18 +48,19 @@ function NavItem({ item, onNavigate }) {
   )
 }
 
-function SidebarContent({ navigation, header, onNavigate, onOpenPalette }) {
+function SidebarContent({ navigation, header, onNavigate, onOpenPalette, minimalChrome }) {
   const user = useSelector(selectCurrentUser)
   const dispatch = useDispatch()
+  const [editingProfile, setEditingProfile] = useState(false)
 
   return (
     <div className="flex h-full flex-col rounded-3xl bg-espresso-900 px-3 py-5">
       <div className="px-3">
         <BrandMark inverted />
       </div>
-      {header && <div className="mt-6">{header}</div>}
+      {header && <div className="mt-6">{typeof header === 'function' ? header({ onNavigate }) : header}</div>}
 
-      <button
+      {!minimalChrome && <button
         type="button"
         onClick={onOpenPalette}
         className="mx-1 mt-4 flex items-center gap-2 rounded-xl bg-white/5 px-3 py-2 text-sm text-cream-300 ring-1 ring-white/10 transition hover:bg-white/10 hover:text-cream-50"
@@ -59,7 +69,7 @@ function SidebarContent({ navigation, header, onNavigate, onOpenPalette }) {
         <span className="flex-1 text-left">Search</span>
         <kbd className="kbd">{isMac ? '⌘' : 'Ctrl'}</kbd>
         <kbd className="kbd">K</kbd>
-      </button>
+      </button>}
 
       <nav className="mt-5 flex-1 space-y-5 overflow-y-auto">
         {navigation.map((section) => (
@@ -76,17 +86,30 @@ function SidebarContent({ navigation, header, onNavigate, onOpenPalette }) {
         ))}
       </nav>
 
-      <div className="mt-4 rounded-2xl bg-white/5 p-2 ring-1 ring-white/10">
-        <div className="flex items-center gap-3 px-1">
-          <Avatar name={user?.name} />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-cream-50">{user?.name}</p>
-            <p className="text-xs text-cream-300">{ROLE_LABELS[user?.role]}</p>
-          </div>
+      <div className="mt-4 px-1">
+        <p className="mb-1.5 text-[10px] font-medium tracking-[0.16em] text-espresso-400 uppercase">Appearance</p>
+        <ThemeToggle variant="sidebar" className="w-full" />
+      </div>
+
+      <div className="mt-3 rounded-2xl bg-white/5 p-2 ring-1 ring-white/10">
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setEditingProfile(true)}
+            className="group flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-xl p-1 text-left transition hover:bg-white/10"
+            aria-label={`Edit profile: ${user?.name}`}
+            title="Edit profile"
+          >
+            <Avatar name={user?.name} src={user?.avatar} />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-medium text-cream-50">{user?.name}</span>
+              <span className="block text-xs text-cream-300">{ROLE_LABELS[user?.role]}</span>
+            </span>
+          </button>
           <button
             type="button"
             onClick={() => dispatch(loggedOut())}
-            className="flex size-9 items-center justify-center rounded-full text-cream-300 transition hover:bg-white/10 hover:text-cream-50"
+            className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-cream-300 transition hover:bg-white/10 hover:text-cream-50"
             aria-label="Log out"
             title="Log out"
           >
@@ -101,6 +124,7 @@ function SidebarContent({ navigation, header, onNavigate, onOpenPalette }) {
       >
         <RotateCcw className="size-3" /> Reset demo data
       </button>
+      {editingProfile && <EditProfileModal onClose={() => setEditingProfile(false)} />}
     </div>
   )
 }
@@ -109,7 +133,7 @@ function SidebarContent({ navigation, header, onNavigate, onOpenPalette }) {
  * Responsive shell: floating dark sidebar on desktop, slide-over drawer on mobile,
  * an optional floating tab bar for the counter flow, and a global ⌘K palette.
  */
-export default function AppShell({ navigation, header, mobileTabs, commands, searchPeople, peopleLabel }) {
+export default function AppShell({ navigation, header, mobileTabs, commands, searchPeople, peopleLabel, minimalChrome = false }) {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [paletteOpen, setPaletteOpen] = useState(false)
   const location = useLocation()
@@ -128,28 +152,33 @@ export default function AppShell({ navigation, header, mobileTabs, commands, sea
   return (
     <div className="min-h-screen overflow-x-clip lg:pl-[17.5rem]">
       <aside className="fixed inset-y-3 left-3 z-30 hidden w-64 lg:block">
-        <SidebarContent navigation={navigation} header={header} onOpenPalette={() => setPaletteOpen(true)} />
+        <SidebarContent navigation={navigation} header={header} minimalChrome={minimalChrome} onOpenPalette={() => setPaletteOpen(true)} />
       </aside>
 
       {/* Mobile top bar */}
-      <div className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-espresso-900/5 bg-cream-100/80 px-4 backdrop-blur-xl lg:hidden">
+      <div className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-espresso-900/5 bg-cream-100/80 px-4 backdrop-blur-xl dark:border-white/10 dark:bg-[#121110]/80 lg:hidden">
         <BrandMark />
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => setPaletteOpen(true)}
-            className="flex size-10 items-center justify-center rounded-full text-espresso-800 hover:bg-cream-200"
-            aria-label="Search"
-          >
-            <Command className="size-5" />
-          </button>
+        <div className="flex items-center gap-2">
+          {!minimalChrome && (
+            <>
+              <ThemeToggle compact />
+              <button
+                type="button"
+                onClick={() => setPaletteOpen(true)}
+                className="flex size-9 items-center justify-center rounded-full text-espresso-800 hover:bg-cream-200 dark:text-cream-200 dark:hover:bg-white/10"
+                aria-label="Search"
+              >
+                <Command className="size-4" />
+              </button>
+            </>
+          )}
           <button
             type="button"
             onClick={() => setDrawerOpen(true)}
-            className="flex size-10 items-center justify-center rounded-full bg-white text-espresso-900 shadow-card"
+            className="flex size-9 items-center justify-center rounded-full bg-white text-espresso-900 shadow-card dark:bg-[#1e1b18] dark:text-cream-50"
             aria-label="Open menu"
           >
-            <MenuIcon className="size-5" />
+            <MenuIcon className="size-4" />
           </button>
         </div>
       </div>
@@ -161,6 +190,7 @@ export default function AppShell({ navigation, header, mobileTabs, commands, sea
             <SidebarContent
               navigation={navigation}
               header={header}
+              minimalChrome={minimalChrome}
               onNavigate={() => setDrawerOpen(false)}
               onOpenPalette={() => {
                 setDrawerOpen(false)
@@ -179,14 +209,25 @@ export default function AppShell({ navigation, header, mobileTabs, commands, sea
         </div>
       )}
 
-      <main key={location.pathname} className="mx-auto max-w-7xl animate-pop-in px-4 pt-6 pb-32 sm:px-6 lg:px-8 lg:pt-9 lg:pb-12">
+      {/* Desktop top header with prominent Theme Switcher */}
+      {!minimalChrome && (
+        <div className="hidden lg:flex items-center justify-end px-8 pt-5 pb-0">
+          <div className="flex items-center gap-2.5 rounded-2xl bg-cream-200/50 p-1.5 ring-1 ring-espresso-900/5 dark:bg-[#1a1815] dark:ring-white/10">
+            <span className="pl-2 text-[11px] font-semibold tracking-wider text-espresso-500 uppercase dark:text-cream-300/70">Theme</span>
+            <ThemeToggle />
+          </div>
+        </div>
+      )}
+
+      <main key={location.pathname} className={`mx-auto max-w-7xl animate-pop-in px-4 pt-4 pb-32 sm:px-6 lg:px-8 lg:pb-12 ${minimalChrome ? 'lg:pt-3' : 'lg:pt-6'}`}>
         <Outlet />
+        <LegalFooter className="mt-10" />
       </main>
 
       {mobileTabs && (
         <nav
           aria-label="Quick navigation"
-          className="fixed inset-x-3 bottom-3 z-20 flex items-center justify-around rounded-full bg-white/90 px-2 py-1.5 shadow-pop ring-1 ring-espresso-900/5 backdrop-blur-xl lg:hidden"
+          className="fixed inset-x-3 bottom-3 z-20 flex items-center justify-around rounded-full bg-white/90 px-2 py-1.5 shadow-pop ring-1 ring-espresso-900/5 backdrop-blur-xl dark:bg-[#1a1815]/95 dark:ring-white/10 lg:hidden"
         >
           {mobileTabs.map((tab) =>
             tab.action === 'palette' ? (

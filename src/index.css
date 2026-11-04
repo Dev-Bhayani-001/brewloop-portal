@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /*
  * Brewloop design tokens — refined editorial system.
  * Warm paper neutrals, deep ink, one terracotta accent, and muted tints for
@@ -58,47 +60,406 @@
 
 @layer base {
   html {
-    @apply bg-cream-100 text-espresso-900 antialiased;
+    @apply bg-cream-100 text-espresso-900 antialiased transition-colors duration-150;
+  }
+  html.dark,
+  [data-theme='dark'] {
+    color-scheme: dark;
+    background-color: #121110;
+    color: #f7f5f1;
+
+    /* Bento tile tints: moody roasted tones */
+    --color-tint-sage: #18231a;
+    --color-tint-stone: #211e1a;
+    --color-tint-blush: #291c17;
+    --color-tint-mist: #172128;
+    --color-tint-sand: #252014;
+
+    --shadow-card: 0 0 0 1px rgba(255, 255, 255, 0.08);
+    --shadow-soft: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
   }
   body {
     @apply min-h-screen font-sans text-[15px] leading-normal;
     font-feature-settings: "ss01", "cv11";
   }
+  html.dark body,
+  [data-theme='dark'] body {
+    background-color: #121110;
+    color: #f7f5f1;
+  }
   ::selection {
     @apply bg-roast-100 text-espresso-900;
+  }
+  html.dark ::selection,
+  [data-theme='dark'] ::selection {
+    @apply bg-roast-700 text-cream-50;
   }
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-espresso-900;
   }
+  html.dark :focus-visible,
+  [data-theme='dark'] :focus-visible {
+    @apply outline-roast-400;
+  }
   input[type='number']::-webkit-inner-spin-button {
     -webkit-appearance: none;
+  }
+
+  /*
+   * Dark Mode Typography & Contrast Overrides
+   * Ensures high readability without modifying dozens of legacy components.
+   */
+  html.dark .text-espresso-950,
+  [data-theme='dark'] .text-espresso-950,
+  html.dark .text-espresso-900,
+  [data-theme='dark'] .text-espresso-900 {
+    color: #fcfbf9;
+  }
+  html.dark .text-espresso-800,
+  [data-theme='dark'] .text-espresso-800 {
+    color: #eeeae3;
+  }
+  html.dark .text-espresso-700,
+  [data-theme='dark'] .text-espresso-700 {
+    color: #ded8ce;
+  }
+  html.dark .text-espresso-600,
+  [data-theme='dark'] .text-espresso-600 {
+    color: #c7c1b5;
+  }
+  html.dark .text-espresso-500,
+  [data-theme='dark'] .text-espresso-500 {
+    color: #aba497;
+  }
+  html.dark .text-espresso-400,
+  [data-theme='dark'] .text-espresso-400 {
+    color: #8e877c;
+  }
+
+  /* Dark mode table & divider borders */
+  html.dark .border-cream-200,
+  [data-theme='dark'] .border-cream-200,
+  html.dark .border-cream-300,
+  [data-theme='dark'] .border-cream-300,
+  html.dark .divide-cream-200 > :not([hidden]) ~ :not([hidden]),
+  [data-theme='dark'] .divide-cream-200 > :not([hidden]) ~ :not([hidden]) {
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  /*
+   * Dark mode hover states: subtle dark highlight instead of changing to white
+   */
+  html.dark [class*='hover:bg-cream']:hover,
+  [data-theme='dark'] [class*='hover:bg-cream']:hover,
+  html.dark [class~='hover:bg-white']:hover,
+  [data-theme='dark'] [class~='hover:bg-white']:hover,
+  html.dark .hover\:bg-cream-50:hover,
+  [data-theme='dark'] .hover\:bg-cream-50:hover,
+  html.dark .hover\:bg-cream-100:hover,
+  [data-theme='dark'] .hover\:bg-cream-100:hover,
+  html.dark .hover\:bg-white:hover,
+  [data-theme='dark'] .hover\:bg-white:hover,
+  html.dark [class*='active:bg-cream']:active,
+  [data-theme='dark'] [class*='active:bg-cream']:active {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  /* Dark mode card backgrounds for general bg-white containers */
+  html.dark .bg-white.shadow-card,
+  [data-theme='dark'] .bg-white.shadow-card,
+  html.dark .rounded-2xl.border.bg-white,
+  [data-theme='dark'] .rounded-2xl.border.bg-white,
+  html.dark .rounded-3xl.bg-white,
+  [data-theme='dark'] .rounded-3xl.bg-white {
+    background-color: #1a1714;
+    border-color: rgba(255, 255, 255, 0.08);
   }
 }
 
 @layer components {
   .card {
-    @apply rounded-2xl bg-white shadow-card;
+    @apply rounded-2xl bg-white shadow-card transition-colors duration-150 dark:bg-[#1a1816] dark:text-cream-100 dark:shadow-none dark:ring-1 dark:ring-white/10;
   }
   .field-label {
-    @apply mb-1.5 block text-[13px] font-medium text-espresso-700;
+    @apply mb-1.5 block text-[13px] font-medium text-espresso-700 dark:text-cream-200;
   }
   .field-input {
-    @apply h-11 w-full rounded-xl border border-cream-300 bg-white px-3.5 text-[15px] text-espresso-900 transition outline-none placeholder:text-espresso-400 hover:border-espresso-400/60 focus:border-espresso-900 focus:ring-4 focus:ring-espresso-900/5 disabled:bg-cream-100 aria-[invalid=true]:border-red-400 aria-[invalid=true]:focus:ring-red-500/10;
+    @apply h-11 w-full rounded-xl border border-cream-300 bg-white px-3.5 text-[15px] text-espresso-900 transition outline-none placeholder:text-espresso-400 hover:border-espresso-400/60 focus:border-espresso-900 focus:ring-4 focus:ring-espresso-900/5 disabled:bg-cream-100 aria-[invalid=true]:border-red-400 aria-[invalid=true]:focus:ring-red-500/10 dark:border-white/15 dark:bg-[#151412] dark:text-cream-50 dark:placeholder:text-espresso-500 dark:hover:border-white/30 dark:focus:border-roast-400 dark:focus:ring-roast-400/15 dark:disabled:bg-white/5;
   }
   .eyebrow {
-    @apply text-[11px] font-medium tracking-[0.14em] text-espresso-500 uppercase;
+    @apply text-[11px] font-medium tracking-[0.14em] text-espresso-500 uppercase dark:text-cream-300/80;
   }
   .display-title {
-    @apply font-display font-normal tracking-[-0.01em] text-espresso-900;
+    @apply font-display font-normal tracking-[-0.01em] text-espresso-900 dark:text-cream-50;
   }
   .tabular {
     font-variant-numeric: tabular-nums;
   }
   .kbd {
-    @apply inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-current/20 px-1 font-mono text-[11px];
+    @apply inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-current/20 px-1 font-mono text-[11px] dark:border-white/20;
   }
 }
 
+/*
+ * Customer wallet. Registered so a café switch can animate the whole colourway.
+ * These surfaces stay dark in both themes, like a physical card.
+ */
+@property --tone-from {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #2c1a11;
+}
+@property --tone-to {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #100c0a;
+}
+@property --tone-glow {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #c9734a;
+}
+@property --tone-ink {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #eda583;
+}
+
+.tone-roast {
+  --tone-from: #2c1a11;
+  --tone-to: #100c0a;
+  --tone-glow: #c9734a;
+  --tone-ink: #eda583;
+}
+.tone-moss {
+  --tone-from: #15251b;
+  --tone-to: #090f0b;
+  --tone-glow: #5c9c70;
+  --tone-ink: #a5d8b3;
+}
+.tone-brass {
+  --tone-from: #2b2110;
+  --tone-to: #100d07;
+  --tone-glow: #c79a3f;
+  --tone-ink: #ecc877;
+}
+
+/* In a layer so positioning utilities can still override these. */
+@layer components {
+  .wallet-surface {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background:
+      radial-gradient(70% 90% at 88% 8%, color-mix(in srgb, var(--tone-glow) 42%, transparent), transparent 70%),
+      linear-gradient(150deg, var(--tone-from), var(--tone-to));
+    transition:
+      --tone-from 500ms ease,
+      --tone-to 500ms ease,
+      --tone-glow 500ms ease,
+      --tone-ink 500ms ease;
+  }
+  /* Fine paper grain, so the gradients read as printed stock instead of a screen fill. */
+  .wallet-surface::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.22;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* Auth brand panel: the same warm table in both themes, matching the rendered scene's edges. */
+  .auth-panel {
+    position: relative;
+    overflow: hidden;
+    container-type: size;
+    background: #d0c3ad;
+    color: #241a14;
+  }
+
+  /* Lifted a step above the hero so the card reads as an object sitting on it. */
+  .pass-face.wallet-surface,
+  .ticket-stub.wallet-surface {
+    background:
+      radial-gradient(95% 125% at 100% 0%, color-mix(in srgb, var(--tone-glow) 72%, transparent), transparent 66%),
+      linear-gradient(145deg, color-mix(in srgb, var(--tone-from) 72%, var(--tone-glow)), var(--tone-from) 58%, var(--tone-to));
+  }
+  .pass-face.wallet-surface {
+    box-shadow:
+      0 30px 50px -22px rgb(0 0 0 / 0.75),
+      inset 0 1px 0 rgb(255 255 255 / 0.18);
+  }
+}
+
+.pass-tilt {
+  --tilt-x: 0deg;
+  --tilt-y: 0deg;
+  --sheen-x: 50%;
+  --sheen-y: 0%;
+  --sheen-opacity: 0;
+  transform: perspective(1100px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+  transform-style: preserve-3d;
+  transition: transform 180ms ease-out;
+}
+.pass-flipper {
+  transform-style: preserve-3d;
+  transition: transform 650ms cubic-bezier(0.3, 1.25, 0.5, 1);
+}
+.pass-flipper[data-flipped="true"] {
+  transform: rotateY(180deg);
+}
+.pass-face {
+  backface-visibility: hidden;
+}
+.pass-face-back {
+  transform: rotateY(180deg);
+}
+
+/* Foil highlight that follows the pointer. */
+.pass-sheen {
+  opacity: var(--sheen-opacity);
+  mix-blend-mode: soft-light;
+  background: radial-gradient(
+    circle at var(--sheen-x) var(--sheen-y),
+    rgb(255 255 255 / 0.85),
+    rgb(255 255 255 / 0.15) 35%,
+    transparent 62%
+  );
+  transition: opacity 220ms ease;
+}
+
+.stamp-inked {
+  animation: stamp-down 460ms cubic-bezier(0.22, 0.9, 0.35, 1) both;
+}
+.stamp-next {
+  animation: stamp-breathe 2.4s ease-in-out infinite;
+}
+.stamp-reward {
+  animation: reward-glow 2.4s ease-in-out infinite;
+}
+
+/* Login cup: images crossfading over the scene. */
+.auth-panel .display-title {
+  color: #241a14;
+}
+.cup-status {
+  border-color: rgb(36 26 20 / 0.28);
+}
+/* Sized so the saucer always fits above the headline; the edges fade into the panel colour. */
+.cup-scene {
+  position: absolute;
+  left: 50%;
+  top: calc((100cqh - 240px) / 2 + 28px);
+  width: min(122cqw, calc((100cqh - 280px) / 0.743));
+  aspect-ratio: 1400 / 1720;
+  transform: translate(-50%, -37.2%);
+  mask-image: linear-gradient(transparent, #000 7%, #000 93%, transparent), linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+  mask-composite: intersect;
+}
+/* Each image covers just the bowl, so it's positioned over the cup in the scene. */
+.cup-layer {
+  position: absolute;
+  left: 28.143%;
+  top: 19.419%;
+  width: 43.714%;
+  max-width: none;
+  opacity: 0;
+  transition: opacity 700ms ease;
+}
+.cup-layer-on {
+  opacity: 1;
+  transition: opacity 1300ms ease;
+}
+.cup-layer-art.cup-layer-on {
+  transition: opacity 1500ms ease 800ms;
+}
+/* The right-hand form picks up the same warmth in dark mode. */
+html.dark .auth-scope .field-input:focus {
+  border-color: #c9a77a;
+  --tw-ring-color: rgb(201 167 122 / 0.18);
+}
+html.dark .auth-scope button[type="submit"] {
+  background: #efe5d4;
+  color: #241a14;
+}
+html.dark .auth-scope button[type="submit"]:hover {
+  background: #f8f1e4;
+}
+
+/* One slow glint when a reward appears, then it stays still. */
+.ticket-shine::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 35%;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.28), transparent);
+  transform: translateX(-120%);
+  animation: ticket-shine 1100ms ease-out 700ms 1 both;
+}
+
+/* Tear-off notches sit on the perforation between the stub and the body. */
+.reward-ticket {
+  --notch-x: 84px;
+  -webkit-mask-image:
+    radial-gradient(circle 9px at var(--notch-x) 0, transparent 97%, #000 100%),
+    radial-gradient(circle 9px at var(--notch-x) 100%, transparent 97%, #000 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    radial-gradient(circle 9px at var(--notch-x) 0, transparent 97%, #000 100%),
+    radial-gradient(circle 9px at var(--notch-x) 100%, transparent 97%, #000 100%);
+  mask-composite: intersect;
+}
+
+.menu-leader {
+  flex: 1;
+  min-width: 1.5rem;
+  transform: translateY(-0.25em);
+  border-bottom: 1.5px dotted currentColor;
+  opacity: 0.35;
+}
+
+@keyframes stamp-down {
+  from {
+    opacity: 0;
+    transform: scale(1.9) rotate(var(--stamp-rotate, 0deg));
+  }
+  65% {
+    opacity: 1;
+    transform: scale(0.93) rotate(var(--stamp-rotate, 0deg));
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(var(--stamp-rotate, 0deg));
+  }
+}
+@keyframes ticket-shine {
+  from {
+    transform: translateX(-120%) skewX(-18deg);
+  }
+  to {
+    transform: translateX(320%) skewX(-18deg);
+  }
+}
+@keyframes stamp-breathe {
+  50% {
+    border-color: var(--tone-ink);
+    background-color: color-mix(in srgb, var(--tone-glow) 18%, transparent);
+  }
+}
+@keyframes reward-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 12px 0 color-mix(in srgb, var(--tone-glow) 35%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 28px 4px color-mix(in srgb, var(--tone-glow) 70%, transparent);
+  }
+}
 @keyframes pop-in {
   from {
     opacity: 0;

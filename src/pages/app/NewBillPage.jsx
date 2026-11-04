@@ -119,15 +119,24 @@ function MenuGrid({ onAdd, lines }) {
             aria-label={`Add ${item.name}, ${formatCurrency(item.price)}${quantity ? `, ${quantity} in bill` : ''}`}
             className={`relative flex min-h-[104px] flex-col justify-between rounded-2xl p-4 text-left transition active:scale-[0.98] ${
               quantity
-                ? 'bg-white ring-2 ring-espresso-900'
-                : 'bg-cream-50 ring-1 ring-espresso-900/6 hover:bg-white hover:shadow-soft'
+                ? 'bg-white ring-2 ring-espresso-900 dark:bg-[#25211c] dark:ring-roast-400'
+                : 'bg-cream-50 ring-1 ring-espresso-900/6 hover:bg-white hover:shadow-soft dark:bg-[#161412] dark:ring-white/10 dark:hover:bg-white/10'
             }`}
           >
-            <Icon className="size-4 text-espresso-400" strokeWidth={1.75} aria-hidden="true" />
-            <span className="mt-3 pr-6 text-sm leading-snug font-medium">{item.name}</span>
-            <span className="tabular mt-0.5 text-[13px] text-espresso-500">{formatCurrency(item.price)}</span>
+            {item.image ? (
+              <img src={item.image} alt="" className="size-10 rounded-lg object-cover" />
+            ) : (
+              <Icon className="size-4 text-espresso-400 dark:text-cream-300/70" strokeWidth={1.75} aria-hidden="true" />
+            )}
+            <span className="mt-3 pr-6 text-sm leading-snug font-medium text-espresso-900 dark:text-cream-50">{item.name}</span>
+            <div className="mt-0.5 flex items-center justify-between gap-1 text-[13px] text-espresso-500 dark:text-cream-300/70">
+              <span className="tabular">{formatCurrency(item.price)}</span>
+              {item.calories != null && (
+                <span className="text-[11px] opacity-80">{item.calories} kcal</span>
+              )}
+            </div>
             {quantity && (
-              <span className="absolute top-3 right-3 flex size-6 animate-pop-in items-center justify-center rounded-full bg-espresso-900 text-[11px] font-medium text-cream-50">
+              <span className="absolute top-3 right-3 flex size-6 animate-pop-in items-center justify-center rounded-full bg-espresso-900 text-[11px] font-medium text-cream-50 dark:bg-roast-500">
                 {quantity}
               </span>
             )}
@@ -283,37 +292,37 @@ export default function NewBillPage() {
         </div>
 
         <aside id="cart" className="scroll-mt-20 lg:sticky lg:top-8 lg:self-start">
-          <section className="flex flex-col overflow-hidden rounded-3xl bg-white shadow-soft">
-            <header className="border-b border-cream-200 p-5">
+          <section className="flex flex-col overflow-hidden rounded-3xl bg-white shadow-soft dark:bg-[#1a1714] dark:ring-1 dark:ring-white/10">
+            <header className="border-b border-cream-200 p-5 dark:border-white/10">
               {loyalty ? (
                 <div className="flex items-center gap-3">
                   <Avatar name={loyalty.customer.name} />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold">{loyalty.customer.name}</p>
-                    <p className="font-mono text-xs text-espresso-500">{loyalty.card.cardNumber}</p>
+                    <p className="truncate font-semibold text-espresso-950 dark:text-cream-50">{loyalty.customer.name}</p>
+                    <p className="font-mono text-xs text-espresso-500 dark:text-cream-300/70">{loyalty.card.cardNumber}</p>
                   </div>
                   <Button variant="ghost" size="icon" onClick={() => setCustomer(null)} aria-label="Change customer">
                     <X className="size-4" />
                   </Button>
                 </div>
               ) : (
-                <p className="text-sm text-espresso-500">No customer selected yet.</p>
+                <p className="text-sm text-espresso-500 dark:text-cream-300/70">No customer selected yet.</p>
               )}
             </header>
 
             {cart.lines.length ? (
-              <ul className="max-h-[320px] divide-y divide-cream-200 overflow-y-auto">
+              <ul className="max-h-[320px] divide-y divide-cream-200 overflow-y-auto dark:divide-white/10">
                 {cart.lines.map((line) => (
                   <li key={line.itemId} className="flex items-center gap-3 px-5 py-3">
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">{line.name}</p>
-                      <p className="tabular text-xs text-espresso-500">{formatCurrency(line.unitPrice)} each</p>
+                      <p className="truncate text-sm font-medium text-espresso-900 dark:text-cream-50">{line.name}</p>
+                      <p className="tabular text-xs text-espresso-500 dark:text-cream-300/70">{formatCurrency(line.unitPrice)} each</p>
                     </div>
-                    <div className="flex items-center rounded-lg border border-cream-300">
+                    <div className="flex items-center rounded-lg border border-cream-300 dark:border-white/15 dark:bg-white/5">
                       <button
                         type="button"
                         onClick={() => cart.changeQuantity(line.itemId, -1)}
-                        className="p-1.5 text-espresso-600 hover:text-espresso-900"
+                        className="p-1.5 text-espresso-600 hover:text-espresso-900 dark:text-cream-300 dark:hover:text-cream-50"
                         aria-label={`Remove one ${line.name}`}
                       >
                         {line.quantity === 1 ? <Trash2 className="size-3.5" /> : <Minus className="size-3.5" />}
@@ -322,13 +331,13 @@ export default function NewBillPage() {
                       <button
                         type="button"
                         onClick={() => cart.changeQuantity(line.itemId, 1)}
-                        className="p-1.5 text-espresso-600 hover:text-espresso-900"
+                        className="p-1.5 text-espresso-600 hover:text-espresso-900 dark:text-cream-300 dark:hover:text-cream-50"
                         aria-label={`Add one ${line.name}`}
                       >
                         <Plus className="size-3.5" />
                       </button>
                     </div>
-                    <p className="tabular w-16 text-right text-sm font-medium">
+                    <p className="tabular w-16 text-right text-sm font-medium text-espresso-900 dark:text-cream-50">
                       {formatCurrency(line.quantity * line.unitPrice)}
                     </p>
                   </li>
@@ -339,8 +348,8 @@ export default function NewBillPage() {
             )}
 
             {loyalty?.availableRewards.length > 0 && (
-              <div className="border-t border-cream-200 px-5 py-4">
-                <p className="eyebrow mb-2 flex items-center gap-1.5 text-roast-600">
+              <div className="border-t border-cream-200 px-5 py-4 dark:border-white/10">
+                <p className="eyebrow mb-2 flex items-center gap-1.5 text-roast-600 dark:text-roast-400">
                   <Gift className="size-3" /> Apply a reward
                 </p>
                 <div className="space-y-1.5">
@@ -351,7 +360,7 @@ export default function NewBillPage() {
                       <label
                         key={reward.id}
                         className={`flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 text-sm transition ${
-                          checked ? 'border-roast-400 bg-roast-50' : 'border-cream-200 hover:bg-cream-50'
+                          checked ? 'border-roast-400 bg-roast-50 dark:bg-roast-950/40' : 'border-cream-200 hover:bg-cream-50 dark:border-white/10 dark:hover:bg-white/5'
                         }`}
                       >
                         <input
@@ -360,7 +369,7 @@ export default function NewBillPage() {
                           checked={checked}
                           onChange={() => setRewardId(checked ? null : reward.id)}
                         />
-                        <span className="flex-1">{describeReward(offer, lookups)}</span>
+                        <span className="flex-1 text-espresso-800 dark:text-cream-200">{describeReward(offer, lookups)}</span>
                       </label>
                     )
                   })}
@@ -369,13 +378,13 @@ export default function NewBillPage() {
             )}
 
             {earnings.length > 0 && loyalty && (
-              <div className="border-t border-cream-200 px-5 py-3">
-                <p className="flex flex-wrap items-center gap-1.5 text-[13px] text-espresso-600">
+              <div className="border-t border-cream-200 px-5 py-3 dark:border-white/10">
+                <p className="flex flex-wrap items-center gap-1.5 text-[13px] text-espresso-600 dark:text-cream-300/80">
                   <Sparkles className="size-3.5 text-roast-500" />
                   Earns{' '}
                   {earnings.map(({ offer, units }, index) => (
                     <span key={offer.id}>
-                      <span className="font-medium text-espresso-800">+{units}</span> {offer.name}
+                      <span className="font-medium text-espresso-800 dark:text-cream-100">+{units}</span> {offer.name}
                       {index < earnings.length - 1 ? ',' : ''}
                     </span>
                   ))}
@@ -383,25 +392,25 @@ export default function NewBillPage() {
               </div>
             )}
 
-            <div className="space-y-1.5 border-t border-cream-200 bg-cream-50 px-5 py-4 text-sm">
-              <div className="flex justify-between text-espresso-600">
+            <div className="space-y-1.5 border-t border-cream-200 bg-cream-50 px-5 py-4 text-sm dark:border-white/10 dark:bg-[#151311]">
+              <div className="flex justify-between text-espresso-600 dark:text-cream-300/80">
                 <span>Subtotal</span>
                 <span className="tabular">{formatCurrency(cart.subtotal)}</span>
               </div>
               {selectedReward && (
-                <div className="flex justify-between text-roast-600">
+                <div className="flex justify-between text-roast-600 dark:text-roast-400">
                   <span>Reward</span>
                   <span className="tabular">−{formatCurrency(discount)}</span>
                 </div>
               )}
               <div className="flex items-baseline justify-between pt-1">
-                <span className="font-semibold">Total</span>
-                <span className="tabular display-title text-2xl">
+                <span className="font-semibold text-espresso-950 dark:text-cream-50">Total</span>
+                <span className="tabular display-title text-2xl text-espresso-950 dark:text-cream-50">
                   {formatCurrency(Math.max(0, cart.subtotal - discount))}
                 </span>
               </div>
               {selectedReward && discount === 0 && cart.lines.length > 0 && (
-                <p className="text-xs text-amber-700">This reward doesn't apply to anything on this bill yet.</p>
+                <p className="text-xs text-amber-700 dark:text-amber-400">This reward doesn't apply to anything on this bill yet.</p>
               )}
               <Button
                 size="lg"
