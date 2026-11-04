@@ -8,13 +8,8 @@ import Button from '../../components/Button'
 import { TextField } from '../../components/Field'
 import { selectCurrentUser, selectSession } from '../../app/selectors'
 import { loggedOut, setOwnPassword } from '../../features/auth/authSlice'
+import { PASSWORD_RULES as RULES } from '../../features/auth/passwordRules'
 import { homeFor } from '../../utils/permissions'
-
-const RULES = [
-  { label: 'At least 8 characters', test: (value) => value.length >= 8 },
-  { label: 'One number', test: (value) => /\d/.test(value) },
-  { label: 'One letter', test: (value) => /[a-z]/i.test(value) },
-]
 
 /** Step 4 of onboarding: the member must replace their temporary password before anything else. */
 export default function SetPasswordPage() {

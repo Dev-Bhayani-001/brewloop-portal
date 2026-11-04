@@ -17,7 +17,7 @@ const adminSlice = createSlice({
         for (let suffix = 2; taken.has(prefix); suffix += 1) prefix = `${action.payload.cardPrefix}${suffix}`
         state.businesses.push({ ...action.payload, cardPrefix: prefix })
       },
-      prepare({ name, city, plan }) {
+      prepare({ name, city, plan, phone, email, address, logo = null }) {
         const prefix = name
           .replace(/[^A-Za-z ]/g, '')
           .split(' ')
@@ -32,6 +32,10 @@ const adminSlice = createSlice({
             name,
             city,
             plan,
+            phone,
+            email,
+            address,
+            logo,
             status: 'active',
             cardPrefix: prefix || 'BL',
             createdAt: new Date().toISOString(),

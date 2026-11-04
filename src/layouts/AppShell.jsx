@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
-import { Command, LogOut, Menu as MenuIcon, RotateCcw, Search, X } from 'lucide-react'
+import { Command, LogOut, Menu as MenuIcon, Pencil, RotateCcw, Search, X } from 'lucide-react'
 
 import Avatar from '../components/Avatar'
 import BrandMark from '../components/BrandMark'
@@ -12,6 +12,7 @@ import Toaster from '../components/Toaster'
 import { resetDemoData } from '../app/store'
 import { selectCurrentUser } from '../app/selectors'
 import { loggedOut } from '../features/auth/authSlice'
+import EditProfileModal from '../features/auth/EditProfileModal'
 import { ROLE_LABELS } from '../utils/permissions'
 
 const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform)
@@ -50,6 +51,7 @@ function NavItem({ item, onNavigate }) {
 function SidebarContent({ navigation, header, onNavigate, onOpenPalette, minimalChrome }) {
   const user = useSelector(selectCurrentUser)
   const dispatch = useDispatch()
+  const [editingProfile, setEditingProfile] = useState(false)
 
   return (
     <div className="flex h-full flex-col rounded-3xl bg-espresso-900 px-3 py-5">
@@ -90,16 +92,25 @@ function SidebarContent({ navigation, header, onNavigate, onOpenPalette, minimal
       </div>
 
       <div className="mt-3 rounded-2xl bg-white/5 p-2 ring-1 ring-white/10">
-        <div className="flex items-center gap-3 px-1">
-          <Avatar name={user?.name} />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-cream-50">{user?.name}</p>
-            <p className="text-xs text-cream-300">{ROLE_LABELS[user?.role]}</p>
-          </div>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setEditingProfile(true)}
+            className="group flex min-w-0 flex-1 items-center gap-3 rounded-xl p-1 text-left transition hover:bg-white/10"
+            aria-label={`Edit profile: ${user?.name}`}
+            title="Edit profile"
+          >
+            <Avatar name={user?.name} src={user?.avatar} />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-medium text-cream-50">{user?.name}</span>
+              <span className="block text-xs text-cream-300">{ROLE_LABELS[user?.role]}</span>
+            </span>
+            <Pencil className="size-3.5 shrink-0 text-cream-300/60 transition group-hover:text-cream-50" aria-hidden="true" />
+          </button>
           <button
             type="button"
             onClick={() => dispatch(loggedOut())}
-            className="flex size-9 items-center justify-center rounded-full text-cream-300 transition hover:bg-white/10 hover:text-cream-50"
+            className="flex size-9 shrink-0 items-center justify-center rounded-full text-cream-300 transition hover:bg-white/10 hover:text-cream-50"
             aria-label="Log out"
             title="Log out"
           >
@@ -114,6 +125,7 @@ function SidebarContent({ navigation, header, onNavigate, onOpenPalette, minimal
       >
         <RotateCcw className="size-3" /> Reset demo data
       </button>
+      {editingProfile && <EditProfileModal onClose={() => setEditingProfile(false)} />}
     </div>
   )
 }

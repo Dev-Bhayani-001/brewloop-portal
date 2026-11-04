@@ -70,6 +70,19 @@ export const setOwnPassword = createAsyncThunk(
   },
 )
 
+/** Mock of POST /auth/change-password — the real API must rate-limit wrong current passwords. */
+export const changeOwnPassword = createAsyncThunk(
+  'auth/changeOwnPassword',
+  async ({ currentPassword, newPassword }, { getState, dispatch, rejectWithValue }) => {
+    await wait(400)
+    const { userId } = getState().auth.session
+    const user = getState().admin.users.find((entry) => entry.id === userId)
+    if (user?.demoPassword !== currentPassword) return rejectWithValue('Your current password is incorrect.')
+    dispatch(passwordSet({ userId, password: newPassword }))
+    return true
+  },
+)
+
 const authSlice = createSlice({
   name: 'auth',
   initialState: { session: null, status: 'idle', error: null },

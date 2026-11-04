@@ -1,11 +1,12 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Coffee, FolderPlus, Pencil, Plus } from 'lucide-react'
+import { Coffee, FolderPlus, ImagePlus, Pencil, Plus } from 'lucide-react'
 
 import Badge from '../../components/Badge'
 import Button from '../../components/Button'
 import EmptyState from '../../components/EmptyState'
 import { SelectField, TextField } from '../../components/Field'
+import ImageCropModal from '../../components/ImageCropModal'
 import Modal from '../../components/Modal'
 import PageHeader from '../../components/PageHeader'
 import Switch from '../../components/Switch'
@@ -13,18 +14,77 @@ import { selectCategories, selectCurrentBusiness, selectItems } from '../../app/
 import { categoryAdded, itemSaved, itemToggled } from '../../features/menu/menuSlice'
 import { toastShown } from '../../features/ui/uiSlice'
 import { formatCurrency } from '../../utils/format'
+import { categoryIcon } from '../../utils/categoryIcon'
+import { IMAGE_TYPES, imageFileError } from '../../utils/image'
+
+// Menu cards show images large, so they need more pixels than a small avatar.
+const MENU_IMAGE_SIDE = 480
+
+function MenuItemCard({ item, icon: Icon, onEdit, onToggle }) {
+  return (
+    <li className="card group relative overflow-hidden">
+      <button type="button" onClick={onEdit} className="block w-full text-left" aria-label={`Edit ${item.name}`}>
+        <span
+          className={`flex aspect-square items-center justify-center bg-cream-100 text-espresso-400 dark:bg-white/5 dark:text-cream-300/60 ${
+            item.active ? '' : 'opacity-50'
+          }`}
+        >
+          {item.image ? (
+            <img src={item.image} alt="" className="size-full object-cover" />
+          ) : (
+            <Icon className="size-6" strokeWidth={1.5} aria-hidden="true" />
+          )}
+        </span>
+        <span
+          className="absolute top-2 right-2 flex size-8 items-center justify-center rounded-full bg-white/90 text-espresso-700 opacity-0 shadow-sm transition group-hover:opacity-100 group-focus-within:opacity-100 dark:bg-[#1a1816]/90 dark:text-cream-100"
+          aria-hidden="true"
+        >
+          <Pencil className="size-3.5" />
+        </span>
+        <span className={`block truncate px-3 pt-2.5 text-sm font-medium ${item.active ? '' : 'opacity-50'}`}>
+          {item.name}
+        </span>
+      </button>
+      {!item.active && (
+        <span className="pointer-events-none absolute top-2 left-2">
+          <Badge>Hidden</Badge>
+        </span>
+      )}
+      <div className="flex items-center justify-between gap-2 px-3 pt-0.5 pb-3">
+        <span
+          className={`tabular text-[13px] text-espresso-500 dark:text-cream-300/80 ${item.active ? '' : 'opacity-50'}`}
+        >
+          {formatCurrency(item.price)}
+        </span>
+        <Switch size="sm" checked={item.active} onChange={onToggle} label={`${item.name} on sale`} />
+      </div>
+    </li>
+  )
+}
 
 function ItemModal({ item, categories, defaultCategoryId, onClose }) {
   const dispatch = useDispatch()
   const business = useSelector(selectCurrentBusiness)
+  const imageInputRef = useRef(null)
   const [form, setForm] = useState({
     name: item?.name ?? '',
     price: item?.price ?? '',
     categoryId: item?.categoryId ?? defaultCategoryId ?? categories[0]?.id,
+    image: item?.image ?? null,
   })
 
   const items = useSelector(selectItems)
   const [errors, setErrors] = useState({})
+  const [cropFile, setCropFile] = useState(null)
+
+  const chooseImage = (event) => {
+    const file = event.target.files?.[0]
+    event.target.value = '' // Lets the same file be picked again after removing it.
+    if (!file) return
+    const image = imageFileError(file) ?? undefined
+    setErrors((current) => ({ ...current, image }))
+    if (!image) setCropFile(file)
+  }
 
   const submit = (event) => {
     event.preventDefault()
@@ -50,6 +110,7 @@ function ItemModal({ item, categories, defaultCategoryId, onClose }) {
         name,
         price: Math.round(price * 100) / 100,
         categoryId: form.categoryId,
+        image: form.image,
       }),
     )
     dispatch(toastShown(item ? 'Item updated' : 'Item added to menu'))
@@ -102,7 +163,53 @@ function ItemModal({ item, categories, defaultCategoryId, onClose }) {
             options={categories.map((category) => ({ value: category.id, label: category.name }))}
           />
         </div>
+        <div>
+          <p className="field-label">Image (optional)</p>
+          <div className="flex items-center gap-3">
+            <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-cream-300 bg-cream-50 text-espresso-400 dark:border-white/15 dark:bg-white/5">
+              {form.image ? (
+                <img src={form.image} alt="Item preview" className="size-full object-cover" />
+              ) : (
+                <ImagePlus className="size-5" strokeWidth={1.75} aria-hidden="true" />
+              )}
+            </div>
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept={IMAGE_TYPES.join(',')}
+              className="hidden"
+              onChange={chooseImage}
+            />
+            <Button variant="secondary" size="sm" onClick={() => imageInputRef.current?.click()}>
+              {form.image ? 'Replace' : 'Upload image'}
+            </Button>
+            {form.image && (
+              <Button variant="ghost" size="sm" onClick={() => setForm({ ...form, image: null })}>
+                Remove
+              </Button>
+            )}
+          </div>
+          {errors.image ? (
+            <p role="alert" className="mt-1.5 text-[13px] font-medium text-red-700 dark:text-red-400">
+              {errors.image}
+            </p>
+          ) : (
+            <p className="mt-1.5 text-[13px] text-espresso-500">PNG, JPG or WebP, up to 10 MB.</p>
+          )}
+        </div>
       </form>
+      {cropFile && (
+        <ImageCropModal
+          file={cropFile}
+          shape="square"
+          outputSide={MENU_IMAGE_SIDE}
+          onCancel={() => setCropFile(null)}
+          onCrop={(image) => {
+            setForm((current) => ({ ...current, image }))
+            setCropFile(null)
+          }}
+        />
+      )}
     </Modal>
   )
 }
@@ -184,15 +291,15 @@ export default function MenuPage() {
       />
 
       {categories.length ? (
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <div className="space-y-7">
           {categories.map((category) => {
             const categoryItems = items.filter((item) => item.categoryId === category.id)
             return (
-              <section key={category.id} className="card flex flex-col">
-                <header className="flex items-center justify-between border-b border-cream-200 px-5 py-3.5">
-                  <div className="flex items-center gap-2">
-                    <h2 className="display-title text-[22px] leading-tight">{category.name}</h2>
-                    <span className="text-sm text-espresso-400">{categoryItems.length}</span>
+              <section key={category.id}>
+                <header className="mb-2.5 flex items-center justify-between">
+                  <div className="flex items-baseline gap-2">
+                    <h2 className="display-title text-[24px] leading-tight">{category.name}</h2>
+                    <span className="text-sm text-espresso-500 dark:text-cream-300/80">{categoryItems.length}</span>
                   </div>
                   <Button
                     variant="ghost"
@@ -202,31 +309,21 @@ export default function MenuPage() {
                     aria-label={`Add item to ${category.name}`}
                   />
                 </header>
-                <ul className="flex-1 divide-y divide-cream-200">
-                  {categoryItems.map((item) => (
-                    <li key={item.id} className="group flex items-center gap-3 px-5 py-2.5">
-                      <div className={`min-w-0 flex-1 ${item.active ? '' : 'opacity-50'}`}>
-                        <p className="truncate text-sm font-medium">{item.name}</p>
-                        <p className="tabular text-[13px] text-espresso-500">{formatCurrency(item.price)}</p>
-                      </div>
-                      {!item.active && <Badge>Hidden</Badge>}
-                      <button
-                        type="button"
-                        onClick={() => setEditing({ item })}
-                        className="rounded-md p-1.5 text-espresso-400 opacity-0 transition group-hover:opacity-100 hover:bg-cream-100 hover:text-espresso-700 focus:opacity-100"
-                        aria-label={`Edit ${item.name}`}
-                      >
-                        <Pencil className="size-3.5" />
-                      </button>
-                      <Switch
-                        checked={item.active}
-                        onChange={() => dispatch(itemToggled(item.id))}
-                        label={`${item.name} on sale`}
+                {categoryItems.length ? (
+                  <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                    {categoryItems.map((item) => (
+                      <MenuItemCard
+                        key={item.id}
+                        item={item}
+                        icon={categoryIcon(category.name)}
+                        onEdit={() => setEditing({ item })}
+                        onToggle={() => dispatch(itemToggled(item.id))}
                       />
-                    </li>
-                  ))}
-                  {!categoryItems.length && <li className="px-5 py-4 text-sm text-espresso-500">No items yet.</li>}
-                </ul>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-espresso-500 dark:text-cream-300/80">No items yet.</p>
+                )}
               </section>
             )
           })}

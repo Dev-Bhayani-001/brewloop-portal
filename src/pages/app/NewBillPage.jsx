@@ -123,7 +123,11 @@ function MenuGrid({ onAdd, lines }) {
                 : 'bg-cream-50 ring-1 ring-espresso-900/6 hover:bg-white hover:shadow-soft dark:bg-[#161412] dark:ring-white/10 dark:hover:bg-white/10'
             }`}
           >
-            <Icon className="size-4 text-espresso-400 dark:text-cream-300/70" strokeWidth={1.75} aria-hidden="true" />
+            {item.image ? (
+              <img src={item.image} alt="" className="size-10 rounded-lg object-cover" />
+            ) : (
+              <Icon className="size-4 text-espresso-400 dark:text-cream-300/70" strokeWidth={1.75} aria-hidden="true" />
+            )}
             <span className="mt-3 pr-6 text-sm leading-snug font-medium text-espresso-900 dark:text-cream-50">{item.name}</span>
             <span className="tabular mt-0.5 text-[13px] text-espresso-500 dark:text-cream-300/70">{formatCurrency(item.price)}</span>
             {quantity && (
