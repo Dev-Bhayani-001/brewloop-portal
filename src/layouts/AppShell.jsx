@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
-import { Command, LogOut, Menu as MenuIcon, Pencil, RotateCcw, Search, X } from 'lucide-react'
+import { Command, LogOut, Menu as MenuIcon, RotateCcw, Search, X } from 'lucide-react'
 
 import Avatar from '../components/Avatar'
 import BrandMark from '../components/BrandMark'
@@ -96,7 +96,7 @@ function SidebarContent({ navigation, header, onNavigate, onOpenPalette, minimal
           <button
             type="button"
             onClick={() => setEditingProfile(true)}
-            className="group flex min-w-0 flex-1 items-center gap-3 rounded-xl p-1 text-left transition hover:bg-white/10"
+            className="group flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-xl p-1 text-left transition hover:bg-white/10"
             aria-label={`Edit profile: ${user?.name}`}
             title="Edit profile"
           >
@@ -105,12 +105,11 @@ function SidebarContent({ navigation, header, onNavigate, onOpenPalette, minimal
               <span className="block truncate text-sm font-medium text-cream-50">{user?.name}</span>
               <span className="block text-xs text-cream-300">{ROLE_LABELS[user?.role]}</span>
             </span>
-            <Pencil className="size-3.5 shrink-0 text-cream-300/60 transition group-hover:text-cream-50" aria-hidden="true" />
           </button>
           <button
             type="button"
             onClick={() => dispatch(loggedOut())}
-            className="flex size-9 shrink-0 items-center justify-center rounded-full text-cream-300 transition hover:bg-white/10 hover:text-cream-50"
+            className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-cream-300 transition hover:bg-white/10 hover:text-cream-50"
             aria-label="Log out"
             title="Log out"
           >
