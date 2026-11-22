@@ -10,7 +10,11 @@ import EmptyState from '../../components/EmptyState'
 import Modal from '../../components/Modal'
 import PlanBadge from '../../components/PlanBadge'
 import StatTile from '../../components/StatTile'
-import { businessUpdated } from '../../features/admin/adminSlice'
+import {
+  businessUpdated,
+  updateBusinessPlanThunk,
+  updateBusinessStatusThunk,
+} from '../../features/admin/adminSlice'
 import MemberActions from '../../features/admin/MemberActions'
 import { AddMemberModal, CredentialsModal } from '../../features/admin/MemberModals'
 import { toastShown } from '../../features/ui/uiSlice'
@@ -22,8 +26,12 @@ function ChangePlanModal({ business, plan, onClose }) {
   const dispatch = useDispatch()
   const isDowngrade = PLAN_ORDER.indexOf(plan) < PLAN_ORDER.indexOf(business.plan)
 
-  const confirm = () => {
-    dispatch(businessUpdated({ id: business.id, plan }))
+  const confirm = async () => {
+    try {
+      await dispatch(updateBusinessPlanThunk({ id: business.id, plan })).unwrap()
+    } catch {
+      dispatch(businessUpdated({ id: business.id, plan }))
+    }
     dispatch(toastShown(`${business.name} moved to ${PLANS[plan].label}`))
     onClose()
   }
@@ -81,8 +89,13 @@ export default function AdminBusinessDetailPage() {
     setParams(next, { replace: true })
   }
 
-  const toggleStatus = () => {
-    dispatch(businessUpdated({ id: business.id, status: isActive ? 'paused' : 'active' }))
+  const toggleStatus = async () => {
+    const nextStatus = isActive ? 'paused' : 'active'
+    try {
+      await dispatch(updateBusinessStatusThunk({ id: business.id, status: nextStatus })).unwrap()
+    } catch {
+      dispatch(businessUpdated({ id: business.id, status: nextStatus }))
+    }
     dispatch(toastShown(isActive ? `${business.name} paused — members can't sign in` : `${business.name} reactivated`))
   }
 

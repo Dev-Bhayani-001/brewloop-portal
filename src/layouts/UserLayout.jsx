@@ -1,13 +1,20 @@
-import { useSelector } from 'react-redux'
+import { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { CreditCard, ReceiptText, Sparkles } from 'lucide-react'
 
 import AppShell from './AppShell'
 import SidebarCafeCard from '../features/loyalty/SidebarCafeCard'
 import { selectCustomerCards } from '../app/selectors'
+import { fetchPortalData } from '../features/loyalty/portalThunks'
 
 export default function UserLayout() {
+  const dispatch = useDispatch()
   const cards = useSelector(selectCustomerCards)
   const rewardCount = cards.reduce((sum, entry) => sum + entry.availableRewards.length, 0)
+
+  useEffect(() => {
+    dispatch(fetchPortalData())
+  }, [dispatch])
 
   const navigation = [
     {

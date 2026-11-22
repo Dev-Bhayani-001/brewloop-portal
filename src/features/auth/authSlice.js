@@ -1,85 +1,71 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+import { authApi, clearToken, setToken } from '../../services/apiClient'
 
-import { MAX_FAILED_LOGINS, loginFailed, loginSucceeded, passwordSet } from '../admin/adminSlice'
-
-const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
-
-const normalise = (value) => value.trim().toLowerCase().replace(/[\s-]/g, '')
-const lastTenDigits = (value) => value.replace(/\D/g, '').slice(-10)
-
-/** Email matches exactly; phone matches on the full 10-digit number (with or without +91). */
-function findUser(users, identifier) {
-  const key = normalise(identifier)
-  if (key.includes('@')) return users.find((entry) => normalise(entry.email) === key)
-  const digits = lastTenDigits(identifier)
-  if (digits.length !== 10) return null
-  return users.find((entry) => lastTenDigits(entry.phone) === digits)
-}
-
-/**
- * Mock of POST /auth/login. The real API returns access + refresh tokens
- * carrying { user_id, role, business_id }.
- */
 export const login = createAsyncThunk(
   'auth/login',
-  async ({ identifier, password }, { getState, dispatch, rejectWithValue }) => {
-    await wait(450)
-    const { users, businesses } = getState().admin
-    const user = findUser(users, identifier)
-
-    if (!user) return rejectWithValue('No account matches that phone or email.')
-    if (user.status === 'locked') {
-      return rejectWithValue('This account is locked after too many attempts. Ask your Brewloop admin to reset it.')
-    }
-    if (user.status === 'deactivated') return rejectWithValue('This account has been deactivated.')
-
-    const business = businesses.find((entry) => entry.id === user.businessId)
-    if (business && business.status !== 'active') {
-      return rejectWithValue(`${business.name} is currently paused. Contact Brewloop support.`)
-    }
-
-    if (user.demoPassword !== password) {
-      dispatch(loginFailed(user.id))
-      const remaining = Math.max(0, MAX_FAILED_LOGINS - (user.failedLogins + 1))
-      return rejectWithValue(
-        remaining > 0
-          ? `Incorrect password. ${remaining} attempt${remaining === 1 ? '' : 's'} left before the account locks.`
-          : 'Incorrect password. The account is now locked.',
-      )
-    }
-
-    dispatch(loginSucceeded(user.id))
-    return {
-      userId: user.id,
-      role: user.role,
-      businessId: user.businessId,
-      customerId: user.customerId ?? null,
-      mustResetPassword: user.mustResetPassword,
+  async ({ identifier, password }, { rejectWithValue }) => {
+    try {
+      const res = await authApi.login(identifier, password)
+      setToken(res.accessToken)
+      const user = res.user
+      const name = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email
+      return {
+        userId: user.id,
+        role: user.role,
+        businessId: user.businessId,
+        customerId: user.customerId ?? null,
+        mustResetPassword: user.mustResetPassword,
+        user: { ...user, name },
+        accessToken: res.accessToken,
+      }
+    } catch (err) {
+      return rejectWithValue(err.message || 'No account matches that phone or email.')
     }
   },
 )
 
-/** Mock of POST /auth/first-login — sets a permanent password and clears must_reset_password. */
 export const setOwnPassword = createAsyncThunk(
   'auth/setOwnPassword',
-  async ({ password }, { getState, dispatch }) => {
-    await wait(400)
-    const { userId } = getState().auth.session
-    dispatch(passwordSet({ userId, password }))
-    return true
+  async ({ password }, { rejectWithValue }) => {
+    try {
+      await authApi.firstLogin(password)
+      return true
+    } catch (err) {
+      return rejectWithValue(err.message || 'Failed to set password')
+    }
   },
 )
 
-/** Mock of POST /auth/change-password — the real API must rate-limit wrong current passwords. */
 export const changeOwnPassword = createAsyncThunk(
   'auth/changeOwnPassword',
-  async ({ currentPassword, newPassword }, { getState, dispatch, rejectWithValue }) => {
-    await wait(400)
-    const { userId } = getState().auth.session
-    const user = getState().admin.users.find((entry) => entry.id === userId)
-    if (user?.demoPassword !== currentPassword) return rejectWithValue('Your current password is incorrect.')
-    dispatch(passwordSet({ userId, password: newPassword }))
-    return true
+  async ({ currentPassword, newPassword }, { rejectWithValue }) => {
+    try {
+      await authApi.changePassword(currentPassword, newPassword)
+      return true
+    } catch (err) {
+      return rejectWithValue(err.message || 'Your current password is incorrect.')
+    }
+  },
+)
+
+export const restoreSession = createAsyncThunk(
+  'auth/restoreSession',
+  async (_, { rejectWithValue }) => {
+    try {
+      const user = await authApi.getMe()
+      const name = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email
+      return {
+        userId: user.id,
+        role: user.role,
+        businessId: user.businessId,
+        customerId: user.customerId ?? null,
+        mustResetPassword: user.mustResetPassword,
+        user: { ...user, name },
+      }
+    } catch (err) {
+      clearToken()
+      return rejectWithValue(err.message || 'Session expired')
+    }
   },
 )
 
@@ -88,6 +74,7 @@ const authSlice = createSlice({
   initialState: { session: null, status: 'idle', error: null },
   reducers: {
     loggedOut(state) {
+      clearToken()
       state.session = null
       state.error = null
       state.status = 'idle'
@@ -115,7 +102,17 @@ const authSlice = createSlice({
       })
       .addCase(setOwnPassword.fulfilled, (state) => {
         state.status = 'idle'
-        state.session.mustResetPassword = false
+        if (state.session) {
+          state.session.mustResetPassword = false
+        }
+      })
+      .addCase(restoreSession.fulfilled, (state, action) => {
+        if (action.payload) {
+          state.session = action.payload
+        }
+      })
+      .addCase(restoreSession.rejected, (state) => {
+        state.session = null
       })
   },
 })

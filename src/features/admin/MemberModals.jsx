@@ -6,7 +6,7 @@ import Button from '../../components/Button'
 import { SelectField, TextField } from '../../components/Field'
 import Modal from '../../components/Modal'
 import { formatIndianPhone, isValidEmail, phoneDigits, phoneError } from '../customers/customerValidation'
-import { memberCreated } from './adminSlice'
+import { inviteMemberThunk, memberCreated } from './adminSlice'
 
 /** Shows the one-time password so the admin can share it with the member. */
 export function CredentialsModal({ userId, title, onClose }) {
@@ -73,7 +73,7 @@ export function AddMemberModal({ businessId, businessOptions, onClose, onCreated
   const [error, setError] = useState(null)
   const set = (field) => (event) => setForm({ ...form, [field]: event.target.value })
 
-  const submit = (event) => {
+  const submit = async (event) => {
     event.preventDefault()
     const email = form.email.trim().toLowerCase()
     const digits = phoneDigits(form.phone)
@@ -86,16 +86,29 @@ export function AddMemberModal({ businessId, businessOptions, onClose, onCreated
     else if (users.some((user) => user.email.toLowerCase() === email)) nextErrors.email = 'This email is already in use.'
     if (!form.businessId) nextErrors.businessId = 'Choose a business.'
     if (Object.keys(nextErrors).length) return setError(nextErrors)
-    const action = dispatch(
-      memberCreated({
-        businessId: form.businessId,
-        role: form.role,
-        name: form.name.trim(),
-        phone: formatIndianPhone(form.phone),
-        email,
-      }),
-    )
-    onCreated(action.payload.id)
+    try {
+      const res = await dispatch(
+        inviteMemberThunk({
+          businessId: form.businessId,
+          role: form.role,
+          name: form.name.trim(),
+          phone: form.phone.replace(/\D/g, '').slice(-10),
+          email,
+        }),
+      ).unwrap()
+      onCreated(res.id)
+    } catch {
+      const action = dispatch(
+        memberCreated({
+          businessId: form.businessId,
+          role: form.role,
+          name: form.name.trim(),
+          phone: formatIndianPhone(form.phone),
+          email,
+        }),
+      )
+      onCreated(action.payload.id)
+    }
   }
 
   return (

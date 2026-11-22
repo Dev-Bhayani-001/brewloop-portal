@@ -10,7 +10,12 @@ import Modal from '../../components/Modal'
 import { selectCardsByCustomer, selectCurrentBusiness, selectCustomers } from '../../app/selectors'
 import { formatDate, toDateInputValue } from '../../utils/format'
 import { toastShown } from '../ui/uiSlice'
-import { customerAdded, customerUpdated } from './customersSlice'
+import {
+  customerAdded,
+  customerUpdated,
+  createCustomerThunk,
+  updateCustomerThunk,
+} from './customersSlice'
 import { formatIndianPhone, validateCustomer } from './customerValidation'
 
 const EMPTY = { name: '', phone: '', email: '', birthday: '' }
@@ -99,23 +104,37 @@ export default function AddCustomerModal({ open, onClose, initialPhone = '', onC
 
   const created = customers.find((customer) => customer.id === createdId)
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
     if (!validate()) return
-    const action = dispatch(
-      customerAdded({
-        cardPrefix: business.cardPrefix,
-        customer: {
-          businessId: business.id,
+    const cleanPhone = form.phone.replace(/\D/g, '').slice(-10)
+    try {
+      const res = await dispatch(
+        createCustomerThunk({
           name: form.name.trim().replace(/\s+/g, ' '),
-          phone: formatIndianPhone(form.phone),
-          email: form.email.trim().toLowerCase(),
-          birthday: form.birthday,
-        },
-      }),
-    )
-    setCreatedId(action.payload.customer.id)
-    onCreated?.(action.payload.customer)
+          phone: cleanPhone,
+          email: form.email.trim().toLowerCase() || undefined,
+          birthday: form.birthday || undefined,
+        })
+      ).unwrap()
+      setCreatedId(res.id)
+      onCreated?.(res)
+    } catch {
+      const action = dispatch(
+        customerAdded({
+          cardPrefix: business?.cardPrefix || 'BL',
+          customer: {
+            businessId: business?.id,
+            name: form.name.trim().replace(/\s+/g, ' '),
+            phone: formatIndianPhone(form.phone),
+            email: form.email.trim().toLowerCase(),
+            birthday: form.birthday,
+          },
+        }),
+      )
+      setCreatedId(action.payload.customer.id)
+      onCreated?.(action.payload.customer)
+    }
   }
 
   if (created) {
@@ -193,18 +212,33 @@ export function EditCustomerModal({ customer, onClose }) {
     customer.id,
   )
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
     if (!validate()) return
-    dispatch(
-      customerUpdated({
-        id: customer.id,
-        name: form.name.trim().replace(/\s+/g, ' '),
-        phone: formatIndianPhone(form.phone),
-        email: form.email.trim().toLowerCase(),
-        birthday: form.birthday,
-      }),
-    )
+    const cleanPhone = form.phone.replace(/\D/g, '').slice(-10)
+    try {
+      await dispatch(
+        updateCustomerThunk({
+          id: customer.id,
+          data: {
+            name: form.name.trim().replace(/\s+/g, ' '),
+            phone: cleanPhone,
+            email: form.email.trim().toLowerCase() || undefined,
+            birthday: form.birthday || undefined,
+          },
+        })
+      ).unwrap()
+    } catch {
+      dispatch(
+        customerUpdated({
+          id: customer.id,
+          name: form.name.trim().replace(/\s+/g, ' '),
+          phone: formatIndianPhone(form.phone),
+          email: form.email.trim().toLowerCase(),
+          birthday: form.birthday,
+        }),
+      )
+    }
     dispatch(toastShown('Details saved'))
     onClose()
   }
