@@ -28,8 +28,11 @@ export const setOwnPassword = createAsyncThunk(
   'auth/setOwnPassword',
   async ({ password }, { rejectWithValue }) => {
     try {
-      await authApi.firstLogin(password)
-      return true
+      const res = await authApi.firstLogin(password)
+      if (res?.accessToken) {
+        setToken(res.accessToken)
+      }
+      return res || true
     } catch (err) {
       return rejectWithValue(err.message || 'Failed to set password')
     }
@@ -100,10 +103,13 @@ const authSlice = createSlice({
       .addCase(setOwnPassword.pending, (state) => {
         state.status = 'loading'
       })
-      .addCase(setOwnPassword.fulfilled, (state) => {
+      .addCase(setOwnPassword.fulfilled, (state, action) => {
         state.status = 'idle'
         if (state.session) {
           state.session.mustResetPassword = false
+          if (action.payload?.accessToken) {
+            state.session.accessToken = action.payload.accessToken
+          }
         }
       })
       .addCase(restoreSession.fulfilled, (state, action) => {
