@@ -88,7 +88,10 @@ export const voidBill = createAsyncThunk(
     try {
       const res = await billingApi.voidBill(billId, reason)
       dispatch(billVoided({ billId, reason, userId: getState().auth.session?.userId }))
-      return res
+      return {
+        ...res,
+        rewardChanges: res.rewardChanges || [],
+      }
     } catch {
       const state = getState()
       const bill = state.billing.bills.find((entry) => entry.id === billId)

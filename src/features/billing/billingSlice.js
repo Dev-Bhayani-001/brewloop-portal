@@ -19,7 +19,11 @@ const billingSlice = createSlice({
   initialState: { bills: [], loading: false, error: null },
   reducers: {
     billAdded(state, action) {
-      state.bills.unshift(action.payload)
+      const b = action.payload
+      state.bills.unshift({
+        ...b,
+        lines: b.lines || b.items || [],
+      })
     },
     billVoided(state, action) {
       const bill = state.bills.find((entry) => entry.id === action.payload.billId)
@@ -33,12 +37,16 @@ const billingSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchBills.fulfilled, (state, action) => {
-        state.bills = action.payload
+        state.bills = (action.payload || []).map((b) => ({
+          ...b,
+          lines: b.lines || b.items || [],
+        }))
       })
       .addCase(fetchPortalData.fulfilled, (state, action) => {
         if (!action.payload?.bills) return
         state.bills = action.payload.bills.map((b) => ({
           ...b,
+          lines: b.lines || b.items || [],
           businessId: b.business?.id,
         }))
       })

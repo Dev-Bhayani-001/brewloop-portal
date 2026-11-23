@@ -190,7 +190,7 @@ export default function CounterPage() {
                           {customer?.name}
                         </Link>
                         <p className="truncate text-[13px] text-espresso-500">
-                          {bill.lines.map((line) => `${line.quantity}× ${line.name}`).join(', ')}
+                          {(bill.lines || bill.items || []).map((line) => `${line.quantity}× ${line.name}`).join(', ')}
                         </p>
                       </div>
                       <div className="text-right">

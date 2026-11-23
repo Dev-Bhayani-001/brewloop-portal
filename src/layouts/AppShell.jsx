@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Command, LogOut, Menu as MenuIcon, RotateCcw, Search, X } from 'lucide-react'
 
 import Avatar from '../components/Avatar'
@@ -51,6 +51,7 @@ function NavItem({ item, onNavigate }) {
 function SidebarContent({ navigation, header, onNavigate, onOpenPalette, minimalChrome }) {
   const user = useSelector(selectCurrentUser)
   const dispatch = useDispatch()
+  const navigate = useNavigate()
   const [editingProfile, setEditingProfile] = useState(false)
 
   return (
@@ -108,7 +109,10 @@ function SidebarContent({ navigation, header, onNavigate, onOpenPalette, minimal
           </button>
           <button
             type="button"
-            onClick={() => dispatch(loggedOut())}
+            onClick={() => {
+              dispatch(loggedOut())
+              navigate('/login')
+            }}
             className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-cream-300 transition hover:bg-white/10 hover:text-cream-50"
             aria-label="Log out"
             title="Log out"

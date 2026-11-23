@@ -37,7 +37,7 @@ export function computeAnalytics({ bills, customers, offers, rewards, from, to }
   const itemStats = {}
   const itemBillsByCustomer = {}
   inRange.forEach((bill) => {
-    bill.lines.forEach((line) => {
+    (bill.lines || bill.items || []).forEach((line) => {
       const entry = (itemStats[line.itemId] ??= { itemId: line.itemId, name: line.name, quantity: 0, revenue: 0 })
       entry.quantity += line.quantity
       entry.revenue += line.quantity * line.unitPrice
