@@ -12,7 +12,7 @@ import PageHeader from '../../components/PageHeader'
 import PlanBadge from '../../components/PlanBadge'
 import SearchInput from '../../components/SearchInput'
 import StatTile from '../../components/StatTile'
-import { businessCreated } from '../../features/admin/adminSlice'
+import { businessCreated, createBusinessThunk } from '../../features/admin/adminSlice'
 import { formatIndianPhone, isValidEmail, phoneError } from '../../features/customers/customerValidation'
 import { toastShown } from '../../features/ui/uiSlice'
 import { PLAN_ORDER, PLANS } from '../../utils/planFeatures'
@@ -46,7 +46,7 @@ function OnboardBusinessModal({ onClose }) {
     if (!logo) setCropFile(file)
   }
 
-  const submit = (event) => {
+  const submit = async (event) => {
     event.preventDefault()
     const name = form.name.trim()
     const nextErrors = {}
@@ -62,18 +62,34 @@ function OnboardBusinessModal({ onClose }) {
     if (!form.address.trim()) nextErrors.address = 'Enter the address.'
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length) return
-    const action = dispatch(
-      businessCreated({
-        ...form,
-        name,
-        city: form.city.trim(),
-        phone: formatIndianPhone(form.phone),
-        email,
-        address: form.address.trim(),
-      }),
-    )
-    dispatch(toastShown({ title: `${name} onboarded`, description: 'Now add their manager.' }))
-    navigate(`/admin/businesses/${action.payload.id}?addMember=1`)
+    try {
+      const res = await dispatch(
+        createBusinessThunk({
+          name,
+          city: form.city.trim(),
+          plan: form.plan || 'silver',
+          phone: form.phone.replace(/\D/g, '').slice(-10),
+          email,
+          address: form.address.trim(),
+        }),
+      ).unwrap()
+      dispatch(toastShown({ title: `${name} onboarded`, description: 'Now add their manager.' }))
+      navigate(`/admin/businesses/${res.id}?addMember=1`)
+    } catch {
+      // Fallback to local action if server is unreachable
+      const action = dispatch(
+        businessCreated({
+          ...form,
+          name,
+          city: form.city.trim(),
+          phone: formatIndianPhone(form.phone),
+          email,
+          address: form.address.trim(),
+        }),
+      )
+      dispatch(toastShown({ title: `${name} onboarded`, description: 'Now add their manager.' }))
+      navigate(`/admin/businesses/${action.payload.id}?addMember=1`)
+    }
   }
 
   return (

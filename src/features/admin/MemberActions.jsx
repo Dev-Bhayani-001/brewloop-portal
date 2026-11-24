@@ -3,21 +3,29 @@ import { KeyRound, UserCheck, UserX } from 'lucide-react'
 
 import Button from '../../components/Button'
 import { toastShown } from '../ui/uiSlice'
-import { memberPasswordReset, memberUpdated } from './adminSlice'
+import { memberPasswordReset, memberUpdated, updateMemberThunk } from './adminSlice'
 
 /** Reset password (admin-driven "forgot password") and deactivate / reactivate. */
 export default function MemberActions({ member, onPasswordReset }) {
   const dispatch = useDispatch()
   const isDeactivated = member.status === 'deactivated'
 
-  const resetPassword = () => {
-    dispatch(memberPasswordReset(member.id))
+  const resetPassword = async () => {
+    try {
+      await dispatch(updateMemberThunk({ id: member.id, data: { resetPassword: true } })).unwrap()
+    } catch {
+      dispatch(memberPasswordReset(member.id))
+    }
     onPasswordReset(member.id)
   }
 
-  const toggleActive = () => {
+  const toggleActive = async () => {
     const status = isDeactivated ? (member.mustResetPassword ? 'invited' : 'active') : 'deactivated'
-    dispatch(memberUpdated({ id: member.id, status }))
+    try {
+      await dispatch(updateMemberThunk({ id: member.id, data: { status } })).unwrap()
+    } catch {
+      dispatch(memberUpdated({ id: member.id, status }))
+    }
     dispatch(toastShown(isDeactivated ? `${member.name} reactivated` : `${member.name} can no longer sign in`))
   }
 

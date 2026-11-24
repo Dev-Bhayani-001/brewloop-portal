@@ -51,7 +51,7 @@ function favouriteItem(bills) {
   bills
     .filter((bill) => bill.status === 'active')
     .forEach((bill) =>
-      bill.lines.forEach((line) => {
+      (bill.lines || bill.items || []).forEach((line) => {
         counts[line.name] = (counts[line.name] ?? 0) + line.quantity
       }),
     )
@@ -203,7 +203,7 @@ export default function CustomerDetailPage() {
                     <div className="min-w-0">
                       <p className="text-sm font-medium">{formatDateTime(bill.createdAt)}</p>
                       <p className="truncate text-[13px] text-espresso-500">
-                        {bill.lines.map((line) => `${line.quantity}× ${line.name}`).join(', ')}
+                        {(bill.lines || bill.items || []).map((line) => `${line.quantity}× ${line.name}`).join(', ')}
                       </p>
                     </div>
                     <div className="shrink-0 text-right">

@@ -35,6 +35,7 @@ export function RequireAuth() {
 
 export function RequireRole({ roles }) {
   const session = useSelector(selectSession)
+  if (!session) return <Navigate to="/login" replace />
   if (!roles.includes(session.role)) return <Navigate to={homeFor(session.role)} replace />
   return <Outlet />
 }
@@ -42,6 +43,7 @@ export function RequireRole({ roles }) {
 /** Role capability gate (UI layer). The API enforces the same rule. */
 export function RequireCapability({ capability }) {
   const session = useSelector(selectSession)
+  if (!session) return <Navigate to="/login" replace />
   if (!can(session.role, capability)) return <Navigate to="/" replace />
   return <Outlet />
 }

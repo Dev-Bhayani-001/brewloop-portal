@@ -1,5 +1,5 @@
-import { useCallback } from 'react'
-import { useSelector } from 'react-redux'
+import { useCallback, useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import {
   BarChart3,
   Coffee,
@@ -24,6 +24,10 @@ import {
 } from '../app/selectors'
 import { matchesCustomer } from '../hooks/useCustomerSearch'
 import { can } from '../utils/permissions'
+import { fetchMenu } from '../features/menu/menuSlice'
+import { fetchCustomers } from '../features/customers/customersSlice'
+import { fetchOffers } from '../features/offers/offersSlice'
+import { fetchBills } from '../features/billing/billingSlice'
 
 function BusinessHeader({ business }) {
   return (
@@ -38,12 +42,20 @@ function BusinessHeader({ business }) {
 }
 
 export default function BusinessLayout() {
+  const dispatch = useDispatch()
   const session = useSelector(selectSession)
   const business = useSelector(selectCurrentBusiness)
   const features = useSelector(selectFeatures)
   const customers = useSelector(selectCustomers)
   const cardsByCustomer = useSelector(selectCardsByCustomer)
   const role = session?.role
+
+  useEffect(() => {
+    dispatch(fetchMenu())
+    dispatch(fetchCustomers())
+    dispatch(fetchOffers())
+    dispatch(fetchBills())
+  }, [dispatch])
 
   const counter = [
     { to: '/', label: 'Home', icon: Home, end: true },

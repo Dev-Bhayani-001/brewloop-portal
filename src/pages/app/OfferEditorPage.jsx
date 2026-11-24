@@ -11,7 +11,7 @@ import StampProgress from '../../components/StampProgress'
 import Switch from '../../components/Switch'
 import { selectCategories, selectCurrentBusiness, selectItems, selectLookups, selectOffers } from '../../app/selectors'
 import { REWARD_TYPES, RULE_TYPES, describeRule } from '../../features/offers/offersEngine'
-import { offerSaved } from '../../features/offers/offersSlice'
+import { offerSaved, saveOfferThunk } from '../../features/offers/offersSlice'
 import { toastShown } from '../../features/ui/uiSlice'
 import { toDateInputValue } from '../../utils/format'
 
@@ -123,22 +123,25 @@ export default function OfferEditorPage() {
       ? categories.map((category) => ({ value: category.id, label: category.name }))
       : items.map((item) => ({ value: item.id, label: `${item.name} · ${lookups.categoriesById[item.categoryId]?.name}` }))
 
-  const save = (event) => {
+  const save = async (event) => {
     event.preventDefault()
     setSubmitted(true)
     if (Object.keys(errors).length) return
-    dispatch(
-      offerSaved({
-        ...form,
-        businessId: business.id,
-        name: form.name.trim(),
-        threshold: Number(form.threshold),
-        rewardValue: Number(form.rewardValue) || 0,
-        rewardCap: Number(form.rewardCap) || 0,
-        minBillValue: Number(form.minBillValue) || 0,
-        scopeId: form.scopeType === 'bill' ? null : form.scopeId,
-      }),
-    )
+    const payload = {
+      ...form,
+      businessId: business.id,
+      name: form.name.trim(),
+      threshold: Number(form.threshold),
+      rewardValue: Number(form.rewardValue) || 0,
+      rewardCap: Number(form.rewardCap) || 0,
+      minBillValue: Number(form.minBillValue) || 0,
+      scopeId: form.scopeType === 'bill' ? null : form.scopeId,
+    }
+    try {
+      await dispatch(saveOfferThunk(payload)).unwrap()
+    } catch {
+      dispatch(offerSaved(payload))
+    }
     dispatch(toastShown(existing ? 'Offer updated' : 'Offer created — it applies from the next bill'))
     navigate('/offers')
   }

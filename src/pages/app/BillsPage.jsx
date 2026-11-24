@@ -25,7 +25,7 @@ function VoidBillModal({ bill, customerName, onClose }) {
 
   const confirm = async () => {
     const action = await dispatch(voidBill({ billId: bill.id, reason }))
-    const cancelled = action.payload?.rewardChanges.filter((change) => change.status === 'cancelled').length ?? 0
+    const cancelled = (action.payload?.rewardChanges || []).filter((change) => change.status === 'cancelled').length
     dispatch(
       toastShown({
         title: 'Bill voided',
@@ -171,7 +171,7 @@ export default function BillsPage() {
                           </Link>
                         </td>
                         <td className="max-w-[240px] truncate px-3 py-3 text-espresso-600">
-                          {bill.lines.reduce((sum, line) => sum + line.quantity, 0)} items
+                          {(bill.lines || bill.items || []).reduce((sum, line) => sum + line.quantity, 0)} items
                           {bill.discount > 0 && (
                             <Badge tone="success" className="ml-2">
                               Reward
@@ -197,8 +197,8 @@ export default function BillsPage() {
                           <td />
                           <td colSpan={6} className="px-3 pt-1 pb-4">
                             <ul className="max-w-md space-y-1 text-[13px]">
-                              {bill.lines.map((line) => (
-                                <li key={line.itemId} className="flex justify-between">
+                              {(bill.lines || bill.items || []).map((line) => (
+                                <li key={line.itemId || line.id || line.name} className="flex justify-between">
                                   <span>
                                     {line.quantity}× {line.name}
                                   </span>

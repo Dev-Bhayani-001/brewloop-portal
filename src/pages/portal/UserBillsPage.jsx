@@ -76,7 +76,7 @@ export default function UserBillsPage() {
         if (!text) return true
         if (bill.id.toLowerCase().includes(text)) return true
         if (bill.business?.name.toLowerCase().includes(text)) return true
-        return bill.lines.some((line) => line.name.toLowerCase().includes(text))
+        return (bill.lines || bill.items || []).some((line) => line.name.toLowerCase().includes(text))
       })
   }, [allBills, range, showAllCafes, activeCafeId, query, now])
 
@@ -175,7 +175,8 @@ export default function UserBillsPage() {
                 {filteredBills.map((bill) => {
                   const expanded = expandedBillId === bill.id
                   const isVoid = bill.status === 'void'
-                  const itemCount = bill.lines.reduce((sum, line) => sum + line.quantity, 0)
+                  const lines = bill.lines || bill.items || []
+                  const itemCount = lines.reduce((sum, line) => sum + line.quantity, 0)
 
                   return (
                     <Fragment key={bill.id}>
@@ -201,7 +202,7 @@ export default function UserBillsPage() {
                         <td className="truncate px-3 py-3 whitespace-nowrap sm:max-w-[280px] text-espresso-700 dark:text-cream-200">
                           <span className="font-medium text-espresso-900 dark:text-cream-50">{itemCount} {itemCount === 1 ? 'item' : 'items'}</span>
                           <span className="ml-1 hidden text-xs text-espresso-500 sm:inline dark:text-cream-300/70">
-                            ({bill.lines.map((l) => l.name).join(', ')})
+                            ({lines.map((l) => l.name).join(', ')})
                           </span>
                           {bill.discount > 0 && (
                             <span className="ml-2 hidden sm:inline">
@@ -232,8 +233,8 @@ export default function UserBillsPage() {
                                 <span className="text-xs text-espresso-400 dark:text-cream-300/60">{formatDateTime(bill.createdAt)}</span>
                               </div>
                               <ul className="space-y-1.5 text-[13px]">
-                                {bill.lines.map((line) => (
-                                  <li key={line.itemId} className="flex justify-between text-espresso-700 dark:text-cream-200">
+                                {lines.map((line) => (
+                                  <li key={line.itemId || line.id || line.name} className="flex justify-between text-espresso-700 dark:text-cream-200">
                                     <span>
                                       {line.quantity}× {line.name}
                                     </span>

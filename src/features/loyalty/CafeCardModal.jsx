@@ -8,7 +8,6 @@ import {
   primaryProgress,
   rewardTitle,
   remainingLabel,
-  cafeShortStatus,
 } from './loyaltyPresentation'
 
 /* ─── Wallet card faces (matching WalletStack visual style) ─── */
@@ -110,7 +109,6 @@ export default function CafeCardModal({ entry, open, onClose }) {
 
   const { business, customer, card, availableRewards, lookups } = entry
   const progress = primaryProgress(entry)
-  const status = cafeShortStatus(entry)
 
   return (
     <dialog

@@ -1,8 +1,9 @@
-import { useCallback } from 'react'
-import { useSelector } from 'react-redux'
+import { useCallback, useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { Building2, Gem, Plus, UsersRound } from 'lucide-react'
 
 import AppShell from './AppShell'
+import { fetchBusinesses, fetchMembers } from '../features/admin/adminSlice'
 
 const navigation = [
   {
@@ -33,7 +34,13 @@ function AdminHeader() {
 }
 
 export default function AdminLayout() {
+  const dispatch = useDispatch()
   const businesses = useSelector((state) => state.admin.businesses)
+
+  useEffect(() => {
+    dispatch(fetchBusinesses())
+    dispatch(fetchMembers())
+  }, [dispatch])
 
   // Palette rows for businesses, so admins can jump straight to one.
   const searchBusinesses = useCallback(

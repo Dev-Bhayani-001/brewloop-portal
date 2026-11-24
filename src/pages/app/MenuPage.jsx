@@ -11,7 +11,16 @@ import Modal from '../../components/Modal'
 import PageHeader from '../../components/PageHeader'
 import Switch from '../../components/Switch'
 import { selectCategories, selectCurrentBusiness, selectItems } from '../../app/selectors'
-import { categoryAdded, itemDeleted, itemSaved, itemToggled } from '../../features/menu/menuSlice'
+import {
+  categoryAdded,
+  createCategoryThunk,
+  deleteItemThunk,
+  itemDeleted,
+  itemSaved,
+  itemToggled,
+  saveItemThunk,
+  toggleItemThunk,
+} from '../../features/menu/menuSlice'
 import { toastShown } from '../../features/ui/uiSlice'
 import { formatCurrency } from '../../utils/format'
 import { categoryIcon } from '../../utils/categoryIcon'
@@ -193,7 +202,7 @@ function ItemModal({ item, categories, defaultCategoryId, onClose, onDelete }) {
     if (!image) setCropFile(file)
   }
 
-  const submit = (event) => {
+  const submit = async (event) => {
     event.preventDefault()
     const name = form.name.trim().replace(/\s+/g, ' ')
     const price = Number(form.price)
@@ -216,20 +225,23 @@ function ItemModal({ item, categories, defaultCategoryId, onClose, onDelete }) {
 
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length) return
-    dispatch(
-      itemSaved({
-        ...item,
-        businessId: business.id,
-        name,
-        price: Math.round(price * 100) / 100,
-        categoryId: form.categoryId,
-        image: form.image,
-        description: form.description.trim() || null,
-        calories: caloriesNum,
-        healthy: Boolean(form.healthy),
-        dietary: form.dietary,
-      }),
-    )
+    const payload = {
+      ...item,
+      businessId: business.id,
+      name,
+      price: Math.round(price * 100) / 100,
+      categoryId: form.categoryId,
+      image: form.image,
+      description: form.description.trim() || null,
+      calories: caloriesNum,
+      healthy: Boolean(form.healthy),
+      dietary: form.dietary,
+    }
+    try {
+      await dispatch(saveItemThunk(payload)).unwrap()
+    } catch {
+      dispatch(itemSaved(payload))
+    }
     dispatch(toastShown(item ? 'Item updated' : 'Item added to menu'))
     onClose()
   }
@@ -418,14 +430,18 @@ function CategoryModal({ onClose }) {
   const [name, setName] = useState('')
   const [error, setError] = useState(null)
 
-  const submit = (event) => {
+  const submit = async (event) => {
     event.preventDefault()
     const trimmed = name.trim().replace(/\s+/g, ' ')
     if (!trimmed) return setError('Enter a category name.')
     if (categories.some((category) => category.name.toLowerCase() === trimmed.toLowerCase())) {
       return setError('This category already exists.')
     }
-    dispatch(categoryAdded({ businessId: business.id, name: trimmed }))
+    try {
+      await dispatch(createCategoryThunk({ name: trimmed })).unwrap()
+    } catch {
+      dispatch(categoryAdded({ businessId: business.id, name: trimmed }))
+    }
     dispatch(toastShown('Category added'))
     onClose()
   }
@@ -497,9 +513,13 @@ export default function MenuPage() {
 
   const activeCount = items.filter((item) => item.active).length
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deletingItem) {
-      dispatch(itemDeleted(deletingItem.id))
+      try {
+        await dispatch(deleteItemThunk(deletingItem.id)).unwrap()
+      } catch {
+        dispatch(itemDeleted(deletingItem.id))
+      }
       dispatch(toastShown(`Deleted "${deletingItem.name}"`))
       setDeletingItem(null)
     }
@@ -550,7 +570,13 @@ export default function MenuPage() {
                         item={item}
                         icon={categoryIcon(category.name)}
                         onEdit={() => setEditing({ item })}
-                        onToggle={() => dispatch(itemToggled(item.id))}
+                        onToggle={async () => {
+                          try {
+                            await dispatch(toggleItemThunk({ id: item.id, active: !item.active })).unwrap()
+                          } catch {
+                            dispatch(itemToggled(item.id))
+                          }
+                        }}
                         onDelete={() => setDeletingItem(item)}
                       />
                     ))}

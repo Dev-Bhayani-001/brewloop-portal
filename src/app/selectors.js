@@ -13,12 +13,13 @@ const selectUsers = (state) => state.admin.users
 const selectBusinesses = (state) => state.admin.businesses
 
 export const selectCurrentUser = createSelector([selectSession, selectUsers], (session, users) =>
-  session ? users.find((user) => user.id === session.userId) ?? null : null,
+  session ? users.find((user) => user.id === session.userId) ?? session.user ?? null : null,
 )
 
 export const selectCurrentBusiness = createSelector(
   [selectSession, selectBusinesses],
-  (session, businesses) => businesses.find((business) => business.id === session?.businessId) ?? null,
+  (session, businesses) =>
+    businesses.find((business) => business.id === session?.businessId) ?? session?.user?.business ?? null,
 )
 
 export const selectPlan = createSelector([selectCurrentBusiness], (business) => getPlan(business?.plan))

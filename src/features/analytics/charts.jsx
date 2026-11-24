@@ -22,8 +22,8 @@ export function DailyBarChart({ data }) {
     <div>
       <div className="relative">
         <div className="pointer-events-none absolute inset-0 flex flex-col justify-between">
-          {[max, Math.round(max / 2), 0].map((tick) => (
-            <div key={tick} className="flex items-center gap-2">
+          {[max, Math.round(max / 2), 0].map((tick, i) => (
+            <div key={i} className="flex items-center gap-2">
               <span className="tabular w-6 text-right text-[11px] text-espresso-400">{tick}</span>
               <span className="h-px flex-1 bg-cream-200" />
             </div>

@@ -10,7 +10,7 @@ import PageHeader from '../../components/PageHeader'
 import Switch from '../../components/Switch'
 import { selectLookups, selectOffers, selectRewards } from '../../app/selectors'
 import { describeRule, offerStatus } from '../../features/offers/offersEngine'
-import { offerToggled } from '../../features/offers/offersSlice'
+import { offerToggled, toggleOfferThunk } from '../../features/offers/offersSlice'
 import { formatDate, formatPercent } from '../../utils/format'
 
 export default function OffersPage() {
@@ -68,7 +68,13 @@ export default function OffersPage() {
                   {!ended && (
                     <Switch
                       checked={offer.active}
-                      onChange={() => dispatch(offerToggled(offer.id))}
+                      onChange={async () => {
+                        try {
+                          await dispatch(toggleOfferThunk(offer.id)).unwrap()
+                        } catch {
+                          dispatch(offerToggled(offer.id))
+                        }
+                      }}
                       label={`${offer.name} active`}
                     />
                   )}
